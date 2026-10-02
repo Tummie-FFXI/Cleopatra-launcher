@@ -12,15 +12,17 @@ public class FileUpdater
         _client = client;
     }
 
-    public string GetFileStatus(UpdateFile updateFile)
+    public string GetFileStatus(
+        UpdateFile updateFile,
+        string destinationPath)
     {
-        if (!File.Exists(updateFile.Path))
+        if (!File.Exists(destinationPath))
         {
             return "MISSING";
         }
 
         string localHash =
-            CalculateSha256(updateFile.Path);
+            CalculateSha256(destinationPath);
 
         if (localHash.Equals(
             updateFile.Sha256,
@@ -32,10 +34,12 @@ public class FileUpdater
         return "OUTDATED";
     }
 
-    public async Task<bool> DownloadAndVerifyAsync(UpdateFile updateFile)
+    public async Task<bool> DownloadAndVerifyAsync(
+        UpdateFile updateFile,
+        string destinationPath)
     {
-        string destinationPath = updateFile.Path;
-        string tempPath = destinationPath + ".download";
+        string tempPath =
+            destinationPath + ".download";
 
         string? directory =
             Path.GetDirectoryName(destinationPath);
@@ -53,16 +57,17 @@ public class FileUpdater
                 File.Delete(tempPath);
             }
 
-            // Download to memory.
+            // Download the new file.
             byte[] fileData =
-                await _client.GetByteArrayAsync(updateFile.Url);
+                await _client.GetByteArrayAsync(
+                    updateFile.Url);
 
-            // Write to the temporary file, not the real file.
+            // Write to a temporary file first.
             await File.WriteAllBytesAsync(
                 tempPath,
                 fileData);
 
-            // Verify the downloaded file.
+            // Verify SHA-256 before replacing anything.
             string downloadedHash =
                 CalculateSha256(tempPath);
 
@@ -74,7 +79,7 @@ public class FileUpdater
                 return false;
             }
 
-            // Only replace the real file after verification succeeds.
+            // Verified. Move it into the Pivot directory.
             File.Move(
                 tempPath,
                 destinationPath,
@@ -93,12 +98,17 @@ public class FileUpdater
         }
     }
 
-    private static string CalculateSha256(string filePath)
+    private static string CalculateSha256(
+        string filePath)
     {
-        using SHA256 sha256 = SHA256.Create();
-        using FileStream stream = File.OpenRead(filePath);
+        using SHA256 sha256 =
+            SHA256.Create();
 
-        byte[] hash = sha256.ComputeHash(stream);
+        using FileStream stream =
+            File.OpenRead(filePath);
+
+        byte[] hash =
+            sha256.ComputeHash(stream);
 
         return Convert
             .ToHexString(hash)
