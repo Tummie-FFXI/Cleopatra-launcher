@@ -38,6 +38,9 @@ FileUpdater fileUpdater =
 PivotService pivotService =
     new PivotService();
 
+InstallationStateService installationStateService =
+    new InstallationStateService();
+
 try
 {
     // ------------------------------------------------
@@ -105,8 +108,11 @@ try
 
     pivotService.EnsureCleopatraDirectory();
 
+    string cleopatraRoot =
+        pivotService.GetCleopatraRoot();
+
     Console.WriteLine(
-        $"Cleopatra directory: {pivotService.GetCleopatraRoot()}");
+        $"Cleopatra directory: {cleopatraRoot}");
 
     // ------------------------------------------------
     // GET UPDATE MANIFEST
@@ -141,8 +147,18 @@ try
     Console.WriteLine();
 
     // ------------------------------------------------
-    // CHECK AND UPDATE FILES
+    // LOAD PREVIOUS INSTALLATION STATE
     // ------------------------------------------------
+
+    var installedManifest =
+        installationStateService.Load(
+            cleopatraRoot);
+
+    // ------------------------------------------------
+    // CHECK AND UPDATE CURRENT FILES
+    // ------------------------------------------------
+
+    bool updateSuccessful = true;
 
     foreach (var updateFile in manifest.Files)
     {
@@ -184,11 +200,85 @@ try
 
             Console.WriteLine(
                 "The existing file was not changed.");
+
+            updateSuccessful = false;
         }
 
         Console.WriteLine();
     }
 
+    // ------------------------------------------------
+    // STOP IF ANY DOWNLOAD FAILED
+    // ------------------------------------------------
+
+    if (!updateSuccessful)
+    {
+        Console.WriteLine(
+            "Update did not complete successfully.");
+
+        Console.WriteLine(
+            "Obsolete files were not removed.");
+
+        Console.WriteLine(
+            "Installation state was not changed.");
+
+        return;
+    }
+
+    // ------------------------------------------------
+    // FIND AND REMOVE OBSOLETE FILES
+    // ------------------------------------------------
+
+    var obsoleteFiles =
+        installationStateService.GetObsoleteFiles(
+            installedManifest,
+            manifest);
+
+    if (obsoleteFiles.Count > 0)
+    {
+        Console.WriteLine(
+            "Removing obsolete Cleopatra files...");
+
+        foreach (string obsoleteFile in obsoleteFiles)
+        {
+            // Run the old path through PivotService's
+            // path-containment protection first.
+            string destinationPath =
+                pivotService.GetDestinationPath(
+                    obsoleteFile);
+
+            bool removed =
+                fileUpdater.RemoveObsoleteFile(
+                    destinationPath,
+                    cleopatraRoot);
+
+            if (removed)
+            {
+                Console.WriteLine(
+                    $"Removed {obsoleteFile}");
+            }
+            else
+            {
+                Console.WriteLine(
+                    $"Already removed: {obsoleteFile}");
+            }
+        }
+
+        Console.WriteLine();
+    }
+
+    // ------------------------------------------------
+    // SAVE NEW INSTALLATION STATE
+    // ------------------------------------------------
+
+    installationStateService.Save(
+        cleopatraRoot,
+        manifest);
+
+    Console.WriteLine(
+        $"Installation state saved: {manifest.Version}");
+
+    Console.WriteLine();
     Console.WriteLine(
         "Update check complete.");
 }

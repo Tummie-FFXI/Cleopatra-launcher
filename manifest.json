@@ -1,10 +1,4 @@
 {
-  "version": "1.0.2",
-  "files": [
-    {
-      "path": "ROM/0/TEST.DAT",
-      "url": "https://raw.githubusercontent.com/Tummie-FFXI/Cleopatra-launcher/main/files/ROM/0/TEST.DAT",
-      "sha256": "7ae975fdd4d6c5f563ec3859f270ac6bbd8cdf5bbc1ad7eac6a326183fa2af36"
-    }
-  ]
+  "version": "1.0.3",
+  "files": []
 }
