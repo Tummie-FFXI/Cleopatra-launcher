@@ -11,4 +11,6 @@ public class PivotInstallation
     public string DatRoot { get; set; } = "";
 
     public string CleopatraRoot { get; set; } = "";
+
+    public string ConfigurationPath { get; set; } = "";
 }

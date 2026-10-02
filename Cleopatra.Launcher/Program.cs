@@ -9,9 +9,9 @@ const string manifestUrl =
 // ----------------------------------------------------
 // TEMPORARY DEVELOPMENT SETTING
 // ----------------------------------------------------
-// For now we're using our fake Windower installation.
-// Later the Windows launcher will detect/select the
-// user's actual Windower or Ashita installation.
+// For Mac testing we're using our fake Windower install.
+// Later the Windows launcher will detect/select the user's
+// actual Windower or Ashita installation.
 
 string home =
     Environment.GetFolderPath(
@@ -21,7 +21,7 @@ string loaderRoot =
     Path.Combine(
         home,
         "CleopatraLoaderTests",
-        "Ashita4");
+        "Windower");
 
 // ----------------------------------------------------
 // SERVICES
@@ -41,10 +41,11 @@ PivotService pivotService =
 try
 {
     // ------------------------------------------------
-    // DETECT PIVOT
+    // DETECT LOADER / PIVOT
     // ------------------------------------------------
 
-    Console.WriteLine("Detecting loader and Pivot...");
+    Console.WriteLine(
+        "Detecting loader and Pivot...");
 
     bool detected =
         pivotService.DetectFromLoaderRoot(
@@ -68,19 +69,52 @@ try
     Console.WriteLine(
         $"Pivot location: {installation.PivotRoot}");
 
-    Console.WriteLine(
-        $"Cleopatra directory: {installation.CleopatraRoot}");
+    // ------------------------------------------------
+    // READ PIVOT CONFIGURATION
+    // ------------------------------------------------
 
-    // Make sure Cleopatra's overlay directory exists.
+    var pivotConfiguration =
+        pivotService.ReadConfiguration();
+
+    Console.WriteLine(
+        $"Pivot overlay root: {pivotConfiguration.OverlayRoot}");
+
+    // ------------------------------------------------
+    // ENABLE CLEOPATRA OVERLAY
+    // ------------------------------------------------
+
+    if (!pivotConfiguration.CleopatraEnabled)
+    {
+        Console.WriteLine(
+            "Enabling Cleopatra Pivot overlay...");
+
+        pivotService.EnsureCleopatraOverlay();
+
+        Console.WriteLine(
+            "Cleopatra Pivot overlay enabled.");
+    }
+    else
+    {
+        Console.WriteLine(
+            "Cleopatra Pivot overlay already enabled.");
+    }
+
+    // ------------------------------------------------
+    // CREATE CLEOPATRA DIRECTORY
+    // ------------------------------------------------
 
     pivotService.EnsureCleopatraDirectory();
 
+    Console.WriteLine(
+        $"Cleopatra directory: {pivotService.GetCleopatraRoot()}");
+
     // ------------------------------------------------
-    // GET MANIFEST
+    // GET UPDATE MANIFEST
     // ------------------------------------------------
 
     Console.WriteLine();
-    Console.WriteLine("Checking for updates...");
+    Console.WriteLine(
+        "Checking for updates...");
 
     var manifest =
         await manifestService.GetManifestAsync(
@@ -107,7 +141,7 @@ try
     Console.WriteLine();
 
     // ------------------------------------------------
-    // CHECK FILES
+    // CHECK AND UPDATE FILES
     // ------------------------------------------------
 
     foreach (var updateFile in manifest.Files)
@@ -162,7 +196,8 @@ catch (Exception ex)
 {
     Console.WriteLine();
     Console.WriteLine(
-        "Unable to check for updates.");
+        "Cleopatra encountered an error.");
 
-    Console.WriteLine(ex.Message);
+    Console.WriteLine(
+        ex.Message);
 }
