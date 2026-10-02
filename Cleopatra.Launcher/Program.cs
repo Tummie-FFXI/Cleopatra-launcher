@@ -13,7 +13,9 @@ using HttpClient client = new HttpClient();
 
 try
 {
-    string manifestJson = await client.GetStringAsync(manifestUrl);
+    // Download the update manifest from GitHub.
+    string manifestJson =
+        await client.GetStringAsync(manifestUrl);
 
     UpdateManifest? manifest =
         JsonSerializer.Deserialize<UpdateManifest>(
@@ -35,12 +37,14 @@ try
     Console.WriteLine($"Files in manifest: {manifest.Files.Count}");
     Console.WriteLine();
 
+    // Check every file listed in the manifest.
     foreach (UpdateFile updateFile in manifest.Files)
     {
         Console.Write($"Checking {updateFile.Path}... ");
 
         bool needsUpdate = false;
 
+        // File doesn't exist.
         if (!File.Exists(updateFile.Path))
         {
             Console.WriteLine("MISSING");
@@ -48,8 +52,11 @@ try
         }
         else
         {
-            string localHash = CalculateSha256(updateFile.Path);
+            // File exists. Calculate its SHA-256 hash.
+            string localHash =
+                CalculateSha256(updateFile.Path);
 
+            // Compare the local hash against the manifest.
             if (localHash.Equals(
                 updateFile.Sha256,
                 StringComparison.OrdinalIgnoreCase))
@@ -63,32 +70,29 @@ try
             }
         }
 
+        // Download missing or outdated files.
         if (needsUpdate)
         {
-            Console.WriteLine($"Downloading {updateFile.Path}...");
+            Console.WriteLine(
+                $"Downloading {updateFile.Path}...");
 
-            await DownloadFile(
-                client,
-                updateFile.Url,
-                updateFile.Path);
+            bool success =
+                await DownloadAndVerifyFile(
+                    client,
+                    updateFile);
 
-            Console.Write($"Verifying {updateFile.Path}... ");
-
-            string downloadedHash =
-                CalculateSha256(updateFile.Path);
-
-            if (downloadedHash.Equals(
-                updateFile.Sha256,
-                StringComparison.OrdinalIgnoreCase))
+            if (success)
             {
-                Console.WriteLine("OK");
+                Console.WriteLine(
+                    $"Updated {updateFile.Path} successfully.");
             }
             else
             {
-                Console.WriteLine("FAILED");
-                File.Delete(updateFile.Path);
                 Console.WriteLine(
-                    "Downloaded file failed SHA-256 verification.");
+                    $"ERROR: {updateFile.Path} failed SHA-256 verification.");
+
+                Console.WriteLine(
+                    "The existing file was not changed.");
             }
         }
 
@@ -104,44 +108,125 @@ catch (Exception ex)
     Console.WriteLine(ex.Message);
 }
 
-static async Task DownloadFile(
-    HttpClient client,
-    string url,
-    string destinationPath)
-{
-    string? directory = Path.GetDirectoryName(destinationPath);
 
+// ----------------------------------------------------
+// DOWNLOAD AND VERIFY FILE
+// ----------------------------------------------------
+
+static async Task<bool> DownloadAndVerifyFile(
+    HttpClient client,
+    UpdateFile updateFile)
+{
+    string destinationPath = updateFile.Path;
+
+    // Download to a temporary file first.
+    string tempPath =
+        destinationPath + ".download";
+
+    string? directory =
+        Path.GetDirectoryName(destinationPath);
+
+    // Create destination directories if necessary.
     if (!string.IsNullOrEmpty(directory))
     {
         Directory.CreateDirectory(directory);
     }
 
-    byte[] fileData = await client.GetByteArrayAsync(url);
+    try
+    {
+        // Remove an abandoned temporary download
+        // from a previous interrupted update.
+        if (File.Exists(tempPath))
+        {
+            File.Delete(tempPath);
+        }
 
-    await File.WriteAllBytesAsync(
-        destinationPath,
-        fileData);
+        // Download file from GitHub.
+        byte[] fileData =
+            await client.GetByteArrayAsync(
+                updateFile.Url);
+
+        // Write ONLY to the temporary file.
+        await File.WriteAllBytesAsync(
+            tempPath,
+            fileData);
+
+        // Calculate SHA-256 of downloaded file.
+        string downloadedHash =
+            CalculateSha256(tempPath);
+
+        // Verify the download before replacing anything.
+        if (!downloadedHash.Equals(
+            updateFile.Sha256,
+            StringComparison.OrdinalIgnoreCase))
+        {
+            File.Delete(tempPath);
+
+            return false;
+        }
+
+        // Verification succeeded.
+        // Replace the existing file only now.
+        File.Move(
+            tempPath,
+            destinationPath,
+            true);
+
+        return true;
+    }
+    catch
+    {
+        // Clean up temporary file if something fails.
+        if (File.Exists(tempPath))
+        {
+            File.Delete(tempPath);
+        }
+
+        throw;
+    }
 }
 
-static string CalculateSha256(string filePath)
+
+// ----------------------------------------------------
+// SHA-256 HASH CALCULATION
+// ----------------------------------------------------
+
+static string CalculateSha256(
+    string filePath)
 {
-    using SHA256 sha256 = SHA256.Create();
-    using FileStream stream = File.OpenRead(filePath);
+    using SHA256 sha256 =
+        SHA256.Create();
 
-    byte[] hash = sha256.ComputeHash(stream);
+    using FileStream stream =
+        File.OpenRead(filePath);
 
-    return Convert.ToHexString(hash).ToLowerInvariant();
+    byte[] hash =
+        sha256.ComputeHash(stream);
+
+    return Convert
+        .ToHexString(hash)
+        .ToLowerInvariant();
 }
+
+
+// ----------------------------------------------------
+// MANIFEST MODELS
+// ----------------------------------------------------
 
 public class UpdateManifest
 {
     public string Version { get; set; } = "";
-    public List<UpdateFile> Files { get; set; } = new();
+
+    public List<UpdateFile> Files { get; set; } =
+        new();
 }
+
 
 public class UpdateFile
 {
     public string Path { get; set; } = "";
+
     public string Url { get; set; } = "";
+
     public string Sha256 { get; set; } = "";
 }
