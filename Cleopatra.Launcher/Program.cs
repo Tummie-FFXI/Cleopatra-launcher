@@ -2,20 +2,30 @@
 
 Console.WriteLine("Cleopatra Launcher");
 Console.WriteLine("------------------");
-Console.WriteLine("Checking for updates...");
 
 const string manifestUrl =
     "https://raw.githubusercontent.com/Tummie-FFXI/Cleopatra-launcher/main/manifest.json";
 
-// TEMPORARY:
-// Safe test Pivot directory.
-// Later PivotService will determine the proper location
-// based on the player's Windows loader/Pivot setup.
-string testPivotRoot =
+// ----------------------------------------------------
+// TEMPORARY DEVELOPMENT SETTING
+// ----------------------------------------------------
+// For now we're using our fake Windower installation.
+// Later the Windows launcher will detect/select the
+// user's actual Windower or Ashita installation.
+
+string home =
+    Environment.GetFolderPath(
+        Environment.SpecialFolder.UserProfile);
+
+string loaderRoot =
     Path.Combine(
-        Environment.GetFolderPath(
-            Environment.SpecialFolder.UserProfile),
-        "CleopatraPivotTest");
+        home,
+        "CleopatraLoaderTests",
+        "Ashita4");
+
+// ----------------------------------------------------
+// SERVICES
+// ----------------------------------------------------
 
 using HttpClient client = new HttpClient();
 
@@ -26,18 +36,52 @@ FileUpdater fileUpdater =
     new FileUpdater(client);
 
 PivotService pivotService =
-    new PivotService(testPivotRoot);
+    new PivotService();
 
 try
 {
-    // Make sure our Cleopatra Pivot directory exists.
+    // ------------------------------------------------
+    // DETECT PIVOT
+    // ------------------------------------------------
+
+    Console.WriteLine("Detecting loader and Pivot...");
+
+    bool detected =
+        pivotService.DetectFromLoaderRoot(
+            loaderRoot);
+
+    if (!detected)
+    {
+        Console.WriteLine();
+        Console.WriteLine(
+            "No supported Pivot installation was found.");
+
+        return;
+    }
+
+    var installation =
+        pivotService.Installation!;
+
+    Console.WriteLine(
+        $"Loader detected: {installation.LoaderType}");
+
+    Console.WriteLine(
+        $"Pivot location: {installation.PivotRoot}");
+
+    Console.WriteLine(
+        $"Cleopatra directory: {installation.CleopatraRoot}");
+
+    // Make sure Cleopatra's overlay directory exists.
+
     pivotService.EnsureCleopatraDirectory();
 
-    Console.WriteLine();
-    Console.WriteLine(
-        $"Cleopatra mod directory: {pivotService.GetCleopatraRoot()}");
+    // ------------------------------------------------
+    // GET MANIFEST
+    // ------------------------------------------------
 
-    // Download and read the manifest.
+    Console.WriteLine();
+    Console.WriteLine("Checking for updates...");
+
     var manifest =
         await manifestService.GetManifestAsync(
             manifestUrl);
@@ -62,11 +106,12 @@ try
 
     Console.WriteLine();
 
-    // Check every file listed in the manifest.
+    // ------------------------------------------------
+    // CHECK FILES
+    // ------------------------------------------------
+
     foreach (var updateFile in manifest.Files)
     {
-        // Convert the manifest's relative path
-        // into the real Cleopatra Pivot destination.
         string destinationPath =
             pivotService.GetDestinationPath(
                 updateFile.Path);
