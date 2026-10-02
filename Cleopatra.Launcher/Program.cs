@@ -15,7 +15,12 @@ try
     string manifestJson = await client.GetStringAsync(manifestUrl);
 
     UpdateManifest? manifest =
-        JsonSerializer.Deserialize<UpdateManifest>(manifestJson);
+        JsonSerializer.Deserialize<UpdateManifest>(
+            manifestJson,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
 
     if (manifest == null)
     {
