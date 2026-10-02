@@ -39,31 +39,88 @@ try
     {
         Console.Write($"Checking {updateFile.Path}... ");
 
+        bool needsUpdate = false;
+
         if (!File.Exists(updateFile.Path))
         {
             Console.WriteLine("MISSING");
-            continue;
-        }
-
-        string localHash = CalculateSha256(updateFile.Path);
-
-        if (localHash.Equals(
-            updateFile.Sha256,
-            StringComparison.OrdinalIgnoreCase))
-        {
-            Console.WriteLine("CURRENT");
+            needsUpdate = true;
         }
         else
         {
-            Console.WriteLine("OUTDATED");
+            string localHash = CalculateSha256(updateFile.Path);
+
+            if (localHash.Equals(
+                updateFile.Sha256,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("CURRENT");
+            }
+            else
+            {
+                Console.WriteLine("OUTDATED");
+                needsUpdate = true;
+            }
         }
+
+        if (needsUpdate)
+        {
+            Console.WriteLine($"Downloading {updateFile.Path}...");
+
+            await DownloadFile(
+                client,
+                updateFile.Url,
+                updateFile.Path);
+
+            Console.Write($"Verifying {updateFile.Path}... ");
+
+            string downloadedHash =
+                CalculateSha256(updateFile.Path);
+
+            if (downloadedHash.Equals(
+                updateFile.Sha256,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("OK");
+            }
+            else
+            {
+                Console.WriteLine("FAILED");
+                File.Delete(updateFile.Path);
+                Console.WriteLine(
+                    "Downloaded file failed SHA-256 verification.");
+            }
+        }
+
+        Console.WriteLine();
     }
+
+    Console.WriteLine("Update check complete.");
 }
 catch (Exception ex)
 {
     Console.WriteLine();
     Console.WriteLine("Unable to check for updates.");
     Console.WriteLine(ex.Message);
+}
+
+static async Task DownloadFile(
+    HttpClient client,
+    string url,
+    string destinationPath)
+{
+    string? directory = Path.GetDirectoryName(destinationPath);
+
+    if (!string.IsNullOrEmpty(directory))
+    {
+        Directory.CreateDirectory(directory);
+    }
+
+    byte[] fileData = await client.GetByteArrayAsync(url);
+
+    await File.WriteAllBytesAsync(
+        destinationPath,
+        fileData);
 }
 
 static string CalculateSha256(string filePath)
