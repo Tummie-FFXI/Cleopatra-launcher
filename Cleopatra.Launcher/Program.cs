@@ -31,52 +31,31 @@ PivotService pivotService =
 InstallationStateService installationStateService =
     new InstallationStateService();
 
+LauncherService launcherService =
+    new LauncherService(
+        loaderDetectionService,
+        settingsService,
+        pivotService);
+
 try
 {
     // ------------------------------------------------
-    // LOAD SAVED LOADER
+    // GET SAVED LOADER
     // ------------------------------------------------
 
     Console.WriteLine(
         "Checking saved loader configuration...");
 
-    LauncherSettings settings =
-        settingsService.Load();
+    LoaderInstallation? selectedLoader =
+        launcherService.GetSavedLoader();
 
-    LoaderInstallation? selectedLoader = null;
-
-    if (settings.LoaderType != LoaderType.Unknown &&
-        !string.IsNullOrWhiteSpace(settings.LoaderPath))
+    if (selectedLoader != null)
     {
-        var savedLoaderResults =
-            loaderDetectionService.DetectFromPaths(
-                new[]
-                {
-                    settings.LoaderPath
-                });
+        Console.WriteLine(
+            $"Using saved loader: {selectedLoader.DisplayName}");
 
-        selectedLoader =
-            savedLoaderResults.FirstOrDefault(
-                loader =>
-                    loader.LoaderType ==
-                    settings.LoaderType);
-
-        if (selectedLoader != null)
-        {
-            Console.WriteLine(
-                $"Using saved loader: {selectedLoader.DisplayName}");
-
-            Console.WriteLine(
-                $"Loader location: {selectedLoader.RootPath}");
-        }
-        else
-        {
-            Console.WriteLine(
-                "Saved loader is no longer available.");
-
-            Console.WriteLine(
-                "Searching for compatible loaders...");
-        }
+        Console.WriteLine(
+            $"Loader location: {selectedLoader.RootPath}");
     }
 
     // ------------------------------------------------
@@ -85,13 +64,15 @@ try
 
     if (selectedLoader == null)
     {
+        Console.WriteLine(
+            "Searching for compatible loaders...");
+
         List<LoaderInstallation> loaders;
 
         if (OperatingSystem.IsWindows())
         {
             loaders =
-                loaderDetectionService
-                    .DetectWindowsInstallations();
+                launcherService.DiscoverWindowsLoaders();
         }
         else
         {
@@ -115,7 +96,7 @@ try
             };
 
             loaders =
-                loaderDetectionService.DetectFromPaths(
+                launcherService.DiscoverLoaders(
                     candidatePaths);
         }
 
@@ -140,6 +121,7 @@ try
         // TEMPORARY:
         // Until the GUI selection screen exists,
         // use the first discovered loader.
+
         selectedLoader =
             loaders[0];
 
@@ -147,38 +129,26 @@ try
         Console.WriteLine(
             $"Selected loader: {selectedLoader.DisplayName}");
 
-        // Save the selection for future launches.
-
-        settings =
-            new LauncherSettings
-            {
-                LoaderType =
-                    selectedLoader.LoaderType,
-
-                LoaderPath =
-                    selectedLoader.RootPath
-            };
-
-        settingsService.Save(
-            settings);
+        launcherService.SaveLoader(
+            selectedLoader);
 
         Console.WriteLine(
             "Loader selection saved.");
     }
 
     // ------------------------------------------------
-    // DETECT PIVOT
+    // PREPARE PIVOT
     // ------------------------------------------------
 
     Console.WriteLine();
     Console.WriteLine(
         "Checking Pivot installation...");
 
-    bool pivotDetected =
-        pivotService.DetectFromLoaderRoot(
-            selectedLoader.RootPath);
+    bool pivotReady =
+        launcherService.PreparePivot(
+            selectedLoader);
 
-    if (!pivotDetected)
+    if (!pivotReady)
     {
         Console.WriteLine();
         Console.WriteLine(
@@ -193,50 +163,22 @@ try
         return;
     }
 
-    var installation =
-        pivotService.Installation!;
+    PivotInstallation? installation =
+        launcherService.GetPivotInstallation();
+
+    if (installation == null)
+    {
+        Console.WriteLine(
+            "Unable to read Pivot installation information.");
+
+        return;
+    }
 
     Console.WriteLine(
         $"Pivot location: {installation.PivotRoot}");
 
-    // ------------------------------------------------
-    // READ PIVOT CONFIGURATION
-    // ------------------------------------------------
-
-    var pivotConfiguration =
-        pivotService.ReadConfiguration();
-
-    Console.WriteLine(
-        $"Pivot overlay root: {pivotConfiguration.OverlayRoot}");
-
-    // ------------------------------------------------
-    // ENABLE CLEOPATRA OVERLAY
-    // ------------------------------------------------
-
-    if (!pivotConfiguration.CleopatraEnabled)
-    {
-        Console.WriteLine(
-            "Enabling Cleopatra Pivot overlay...");
-
-        pivotService.EnsureCleopatraOverlay();
-
-        Console.WriteLine(
-            "Cleopatra Pivot overlay enabled.");
-    }
-    else
-    {
-        Console.WriteLine(
-            "Cleopatra Pivot overlay already enabled.");
-    }
-
-    // ------------------------------------------------
-    // CREATE CLEOPATRA DIRECTORY
-    // ------------------------------------------------
-
-    pivotService.EnsureCleopatraDirectory();
-
     string cleopatraRoot =
-        pivotService.GetCleopatraRoot();
+        launcherService.GetCleopatraRoot();
 
     Console.WriteLine(
         $"Cleopatra directory: {cleopatraRoot}");
