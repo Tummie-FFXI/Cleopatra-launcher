@@ -7,27 +7,13 @@ const string manifestUrl =
     "https://raw.githubusercontent.com/Tummie-FFXI/Cleopatra-launcher/main/manifest.json";
 
 // ----------------------------------------------------
-// TEMPORARY DEVELOPMENT SETTING
-// ----------------------------------------------------
-// For Mac testing we're using our fake Windower install.
-// Later the Windows launcher will detect/select the user's
-// actual Windower or Ashita installation.
-
-string home =
-    Environment.GetFolderPath(
-        Environment.SpecialFolder.UserProfile);
-
-string loaderRoot =
-    Path.Combine(
-        home,
-        "CleopatraLoaderTests",
-        "Windower");
-
-// ----------------------------------------------------
 // SERVICES
 // ----------------------------------------------------
 
 using HttpClient client = new HttpClient();
+
+LoaderDetectionService loaderDetectionService =
+    new LoaderDetectionService();
 
 ManifestService manifestService =
     new ManifestService(client);
@@ -41,33 +27,87 @@ PivotService pivotService =
 InstallationStateService installationStateService =
     new InstallationStateService();
 
+// ----------------------------------------------------
+// TEMPORARY DEVELOPMENT PATHS
+// ----------------------------------------------------
+// These fake paths are only for development on the Mac.
+// Later Windows discovery will supply the real candidates.
+
+string home =
+    Environment.GetFolderPath(
+        Environment.SpecialFolder.UserProfile);
+
+string testRoot =
+    Path.Combine(
+        home,
+        "CleopatraLoaderTests");
+
+string[] candidatePaths =
+{
+    Path.Combine(testRoot, "Windower"),
+    Path.Combine(testRoot, "Ashita3"),
+    Path.Combine(testRoot, "Ashita4")
+};
+
 try
 {
     // ------------------------------------------------
-    // DETECT LOADER / PIVOT
+    // FIND COMPATIBLE LOADERS
     // ------------------------------------------------
 
     Console.WriteLine(
-        "Detecting loader and Pivot...");
+        "Searching for compatible FFXI loaders...");
 
-    bool detected =
-        pivotService.DetectFromLoaderRoot(
-            loaderRoot);
+    var loaders =
+        loaderDetectionService.DetectFromPaths(
+            candidatePaths);
 
-    if (!detected)
+    if (loaders.Count == 0)
     {
         Console.WriteLine();
         Console.WriteLine(
-            "No supported Pivot installation was found.");
+            "No compatible Windower or Ashita installation was found.");
+
+        return;
+    }
+
+    Console.WriteLine(
+        $"Compatible loaders found: {loaders.Count}");
+
+    foreach (var loader in loaders)
+    {
+        Console.WriteLine(
+            $"  - {loader.DisplayName}: {loader.RootPath}");
+    }
+
+    // TEMPORARY:
+    // Select the first detected loader.
+    // The GUI will eventually handle this choice.
+    var selectedLoader =
+        loaders[0];
+
+    Console.WriteLine();
+    Console.WriteLine(
+        $"Using: {selectedLoader.DisplayName}");
+
+    // ------------------------------------------------
+    // DETECT PIVOT
+    // ------------------------------------------------
+
+    bool pivotDetected =
+        pivotService.DetectFromLoaderRoot(
+            selectedLoader.RootPath);
+
+    if (!pivotDetected)
+    {
+        Console.WriteLine(
+            "Pivot was not found for the selected loader.");
 
         return;
     }
 
     var installation =
         pivotService.Installation!;
-
-    Console.WriteLine(
-        $"Loader detected: {installation.LoaderType}");
 
     Console.WriteLine(
         $"Pivot location: {installation.PivotRoot}");
@@ -208,7 +248,7 @@ try
     }
 
     // ------------------------------------------------
-    // STOP IF ANY DOWNLOAD FAILED
+    // STOP IF UPDATE FAILED
     // ------------------------------------------------
 
     if (!updateSuccessful)
@@ -226,7 +266,7 @@ try
     }
 
     // ------------------------------------------------
-    // FIND AND REMOVE OBSOLETE FILES
+    // REMOVE OBSOLETE CLEOPATRA FILES
     // ------------------------------------------------
 
     var obsoleteFiles =
@@ -241,8 +281,6 @@ try
 
         foreach (string obsoleteFile in obsoleteFiles)
         {
-            // Run the old path through PivotService's
-            // path-containment protection first.
             string destinationPath =
                 pivotService.GetDestinationPath(
                     obsoleteFile);
@@ -268,7 +306,7 @@ try
     }
 
     // ------------------------------------------------
-    // SAVE NEW INSTALLATION STATE
+    // SAVE INSTALLATION STATE
     // ------------------------------------------------
 
     installationStateService.Save(
