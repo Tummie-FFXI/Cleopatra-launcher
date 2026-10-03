@@ -260,7 +260,7 @@ try
     // ------------------------------------------------
     // DEVELOPMENT TEST ONLY:
     // Verify the command Cleopatra will use without
-    // actually attempting to launch Windower on macOS.
+    // actually attempting to launch the Windows loader on macOS.
 
     Console.WriteLine();
     Console.WriteLine(

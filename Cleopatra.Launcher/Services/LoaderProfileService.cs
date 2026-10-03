@@ -60,7 +60,7 @@ public class LoaderProfileService
                 $"\"{Path.Combine(loader.RootPath, "Windower.exe")}\" -p Cleopatra",
 
             LoaderType.Ashita4 =>
-                "Ashita 4 launch command not implemented yet.",
+                $"\"{Path.Combine(loader.RootPath, "Ashita-cli.exe")}\" Cleopatra.ini",
 
             _ =>
                 throw new NotSupportedException(
@@ -242,11 +242,83 @@ public class LoaderProfileService
         LoaderInstallation loader,
         string xiLoaderPath)
     {
-        // Ashita 4 support will be implemented after
-        // the Windower workflow is complete.
+        string bootDirectory =
+            Path.Combine(
+                loader.RootPath,
+                "config",
+                "boot");
 
-        throw new NotImplementedException(
-            "Ashita 4 profile creation is not implemented yet.");
+        Directory.CreateDirectory(
+            bootDirectory);
+
+        string profilePath =
+            Path.Combine(
+                bootDirectory,
+                "Cleopatra.ini");
+
+        List<string> lines;
+
+        if (File.Exists(profilePath))
+        {
+            lines =
+                File.ReadAllLines(profilePath)
+                    .ToList();
+        }
+        else
+        {
+            string examplePath =
+                Path.Combine(
+                    bootDirectory,
+                    "example-privateserver.ini");
+
+            if (File.Exists(examplePath))
+            {
+                lines =
+                    File.ReadAllLines(examplePath)
+                        .ToList();
+            }
+            else
+            {
+                lines =
+                    new List<string>
+                    {
+                        "[ashita.boot]",
+                        "file        =",
+                        "command     =",
+                        "gamemodule  = ffximain.dll",
+                        "script      = default.txt",
+                        "args        ="
+                    };
+            }
+        }
+
+        SetIniValue(
+            lines,
+            "ashita.boot",
+            "file",
+            Path.GetFullPath(xiLoaderPath));
+
+        SetIniValue(
+            lines,
+            "ashita.boot",
+            "command",
+            $"--server {DevelopmentServerAddress}");
+
+        SetIniValue(
+            lines,
+            "ashita.boot",
+            "gamemodule",
+            "ffximain.dll");
+
+        SetIniValue(
+            lines,
+            "ashita.boot",
+            "script",
+            "default.txt");
+
+        File.WriteAllLines(
+            profilePath,
+            lines);
     }
 
     // ----------------------------------------------------
@@ -256,10 +328,149 @@ public class LoaderProfileService
     private static void LaunchAshitaProfile(
         LoaderInstallation loader)
     {
-        // Ashita 4 support will be implemented after
-        // the Windower workflow is complete.
+        string ashitaPath =
+            Path.Combine(
+                loader.RootPath,
+                "Ashita-cli.exe");
 
-        throw new NotImplementedException(
-            "Ashita 4 profile launching is not implemented yet.");
+        if (!File.Exists(ashitaPath))
+        {
+            throw new FileNotFoundException(
+                "Ashita-cli.exe was not found.",
+                ashitaPath);
+        }
+
+        string profilePath =
+            Path.Combine(
+                loader.RootPath,
+                "config",
+                "boot",
+                "Cleopatra.ini");
+
+        if (!File.Exists(profilePath))
+        {
+            throw new FileNotFoundException(
+                "Cleopatra Ashita profile was not found.",
+                profilePath);
+        }
+
+        ProcessStartInfo startInfo =
+            new ProcessStartInfo
+            {
+                FileName =
+                    ashitaPath,
+
+                WorkingDirectory =
+                    loader.RootPath,
+
+                UseShellExecute =
+                    true
+            };
+
+        startInfo.ArgumentList.Add(
+            "Cleopatra.ini");
+
+        Process.Start(
+            startInfo);
+    }
+
+    // ----------------------------------------------------
+    // SET INI VALUE
+    // ----------------------------------------------------
+
+    private static void SetIniValue(
+        List<string> lines,
+        string sectionName,
+        string key,
+        string value)
+    {
+        string sectionHeader =
+            $"[{sectionName}]";
+
+        int sectionIndex =
+            lines.FindIndex(
+                line =>
+                    line.Trim().Equals(
+                        sectionHeader,
+                        StringComparison.OrdinalIgnoreCase));
+
+        if (sectionIndex < 0)
+        {
+            if (lines.Count > 0 &&
+                !string.IsNullOrWhiteSpace(lines[^1]))
+            {
+                lines.Add(
+                    string.Empty);
+            }
+
+            lines.Add(
+                sectionHeader);
+
+            lines.Add(
+                $"{key} = {value}");
+
+            return;
+        }
+
+        int nextSectionIndex =
+            lines.FindIndex(
+                sectionIndex + 1,
+                line =>
+                {
+                    string trimmed =
+                        line.Trim();
+
+                    return trimmed.StartsWith("[") &&
+                           trimmed.EndsWith("]");
+                });
+
+        if (nextSectionIndex < 0)
+        {
+            nextSectionIndex =
+                lines.Count;
+        }
+
+        for (int i = sectionIndex + 1;
+             i < nextSectionIndex;
+             i++)
+        {
+            string trimmed =
+                lines[i].Trim();
+
+            if (string.IsNullOrWhiteSpace(trimmed) ||
+                trimmed.StartsWith(";") ||
+                trimmed.StartsWith("#"))
+            {
+                continue;
+            }
+
+            int equalsIndex =
+                trimmed.IndexOf('=');
+
+            if (equalsIndex < 0)
+            {
+                continue;
+            }
+
+            string existingKey =
+                trimmed[..equalsIndex]
+                    .Trim();
+
+            if (!existingKey.Equals(
+                key,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            lines[i] =
+                $"{key} = {value}";
+
+            return;
+        }
+
+        lines.Insert(
+            nextSectionIndex,
+            $"{key} = {value}");
     }
 }
