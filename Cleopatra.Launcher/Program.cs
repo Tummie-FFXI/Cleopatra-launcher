@@ -35,7 +35,10 @@ LauncherService launcherService =
     new LauncherService(
         loaderDetectionService,
         settingsService,
-        pivotService);
+        pivotService,
+        manifestService,
+        fileUpdater,
+        installationStateService);
 
 try
 {
@@ -184,170 +187,17 @@ try
         $"Cleopatra directory: {cleopatraRoot}");
 
     // ------------------------------------------------
-    // GET UPDATE MANIFEST
+    // UPDATE CLEOPATRA
     // ------------------------------------------------
 
-    Console.WriteLine();
-    Console.WriteLine(
-        "Checking for updates...");
-
-    var manifest =
-        await manifestService.GetManifestAsync(
+    bool updateSuccessful =
+        await launcherService.UpdateCleopatraAsync(
             manifestUrl);
-
-    if (manifest == null)
-    {
-        Console.WriteLine(
-            "Unable to read update manifest.");
-
-        return;
-    }
-
-    Console.WriteLine();
-    Console.WriteLine(
-        "Manifest downloaded successfully.");
-
-    Console.WriteLine(
-        $"Manifest version: {manifest.Version}");
-
-    Console.WriteLine(
-        $"Files in manifest: {manifest.Files.Count}");
-
-    Console.WriteLine();
-
-    // ------------------------------------------------
-    // LOAD PREVIOUS INSTALLATION STATE
-    // ------------------------------------------------
-
-    var installedManifest =
-        installationStateService.Load(
-            cleopatraRoot);
-
-    // ------------------------------------------------
-    // CHECK AND UPDATE CURRENT FILES
-    // ------------------------------------------------
-
-    bool updateSuccessful = true;
-
-    foreach (var updateFile in manifest.Files)
-    {
-        string destinationPath =
-            pivotService.GetDestinationPath(
-                updateFile.Path);
-
-        string status =
-            fileUpdater.GetFileStatus(
-                updateFile,
-                destinationPath);
-
-        Console.WriteLine(
-            $"Checking {updateFile.Path}... {status}");
-
-        if (status == "CURRENT")
-        {
-            Console.WriteLine();
-            continue;
-        }
-
-        Console.WriteLine(
-            $"Downloading {updateFile.Path}...");
-
-        bool success =
-            await fileUpdater.DownloadAndVerifyAsync(
-                updateFile,
-                destinationPath);
-
-        if (success)
-        {
-            Console.WriteLine(
-                $"Updated {updateFile.Path} successfully.");
-        }
-        else
-        {
-            Console.WriteLine(
-                $"ERROR: {updateFile.Path} failed SHA-256 verification.");
-
-            Console.WriteLine(
-                "The existing file was not changed.");
-
-            updateSuccessful = false;
-        }
-
-        Console.WriteLine();
-    }
-
-    // ------------------------------------------------
-    // STOP IF UPDATE FAILED
-    // ------------------------------------------------
 
     if (!updateSuccessful)
     {
-        Console.WriteLine(
-            "Update did not complete successfully.");
-
-        Console.WriteLine(
-            "Obsolete files were not removed.");
-
-        Console.WriteLine(
-            "Installation state was not changed.");
-
         return;
     }
-
-    // ------------------------------------------------
-    // REMOVE OBSOLETE CLEOPATRA FILES
-    // ------------------------------------------------
-
-    var obsoleteFiles =
-        installationStateService.GetObsoleteFiles(
-            installedManifest,
-            manifest);
-
-    if (obsoleteFiles.Count > 0)
-    {
-        Console.WriteLine(
-            "Removing obsolete Cleopatra files...");
-
-        foreach (string obsoleteFile in obsoleteFiles)
-        {
-            string destinationPath =
-                pivotService.GetDestinationPath(
-                    obsoleteFile);
-
-            bool removed =
-                fileUpdater.RemoveObsoleteFile(
-                    destinationPath,
-                    cleopatraRoot);
-
-            if (removed)
-            {
-                Console.WriteLine(
-                    $"Removed {obsoleteFile}");
-            }
-            else
-            {
-                Console.WriteLine(
-                    $"Already removed: {obsoleteFile}");
-            }
-        }
-
-        Console.WriteLine();
-    }
-
-    // ------------------------------------------------
-    // SAVE INSTALLATION STATE
-    // ------------------------------------------------
-
-    installationStateService.Save(
-        cleopatraRoot,
-        manifest);
-
-    Console.WriteLine(
-        $"Installation state saved: {manifest.Version}");
-
-    Console.WriteLine();
-    Console.WriteLine(
-        "Update check complete.");
 }
 catch (Exception ex)
 {
