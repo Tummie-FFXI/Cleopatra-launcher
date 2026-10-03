@@ -1,4 +1,5 @@
-﻿using Cleopatra.Launcher.Services;
+﻿using Cleopatra.Launcher.Models;
+using Cleopatra.Launcher.Services;
 
 Console.WriteLine("Cleopatra Launcher");
 Console.WriteLine("------------------");
@@ -15,6 +16,9 @@ using HttpClient client = new HttpClient();
 LoaderDetectionService loaderDetectionService =
     new LoaderDetectionService();
 
+SettingsService settingsService =
+    new SettingsService();
+
 ManifestService manifestService =
     new ManifestService(client);
 
@@ -27,72 +31,149 @@ PivotService pivotService =
 InstallationStateService installationStateService =
     new InstallationStateService();
 
-// ----------------------------------------------------
-// TEMPORARY DEVELOPMENT PATHS
-// ----------------------------------------------------
-// These fake paths are only for development on the Mac.
-// Later Windows discovery will supply the real candidates.
-
-string home =
-    Environment.GetFolderPath(
-        Environment.SpecialFolder.UserProfile);
-
-string testRoot =
-    Path.Combine(
-        home,
-        "CleopatraLoaderTests");
-
-string[] candidatePaths =
-{
-    Path.Combine(testRoot, "Windower"),
-    Path.Combine(testRoot, "Ashita3"),
-    Path.Combine(testRoot, "Ashita4")
-};
-
 try
 {
     // ------------------------------------------------
-    // FIND COMPATIBLE LOADERS
+    // LOAD SAVED LOADER
     // ------------------------------------------------
 
     Console.WriteLine(
-        "Searching for compatible FFXI loaders...");
+        "Checking saved loader configuration...");
 
-    var loaders =
-        loaderDetectionService.DetectFromPaths(
-            candidatePaths);
+    LauncherSettings settings =
+        settingsService.Load();
 
-    if (loaders.Count == 0)
+    LoaderInstallation? selectedLoader = null;
+
+    if (settings.LoaderType != LoaderType.Unknown &&
+        !string.IsNullOrWhiteSpace(settings.LoaderPath))
     {
+        var savedLoaderResults =
+            loaderDetectionService.DetectFromPaths(
+                new[]
+                {
+                    settings.LoaderPath
+                });
+
+        selectedLoader =
+            savedLoaderResults.FirstOrDefault(
+                loader =>
+                    loader.LoaderType ==
+                    settings.LoaderType);
+
+        if (selectedLoader != null)
+        {
+            Console.WriteLine(
+                $"Using saved loader: {selectedLoader.DisplayName}");
+
+            Console.WriteLine(
+                $"Loader location: {selectedLoader.RootPath}");
+        }
+        else
+        {
+            Console.WriteLine(
+                "Saved loader is no longer available.");
+
+            Console.WriteLine(
+                "Searching for compatible loaders...");
+        }
+    }
+
+    // ------------------------------------------------
+    // DISCOVER LOADERS IF NECESSARY
+    // ------------------------------------------------
+
+    if (selectedLoader == null)
+    {
+        List<LoaderInstallation> loaders;
+
+        if (OperatingSystem.IsWindows())
+        {
+            loaders =
+                loaderDetectionService
+                    .DetectWindowsInstallations();
+        }
+        else
+        {
+            // ----------------------------------------
+            // TEMPORARY MAC DEVELOPMENT PATHS
+            // ----------------------------------------
+
+            string home =
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.UserProfile);
+
+            string testRoot =
+                Path.Combine(
+                    home,
+                    "CleopatraLoaderTests");
+
+            string[] candidatePaths =
+            {
+                Path.Combine(testRoot, "Windower"),
+                Path.Combine(testRoot, "Ashita3"),
+                Path.Combine(testRoot, "Ashita4")
+            };
+
+            loaders =
+                loaderDetectionService.DetectFromPaths(
+                    candidatePaths);
+        }
+
+        if (loaders.Count == 0)
+        {
+            Console.WriteLine();
+            Console.WriteLine(
+                "No compatible Windower or Ashita installation was found.");
+
+            return;
+        }
+
+        Console.WriteLine(
+            $"Compatible loaders found: {loaders.Count}");
+
+        foreach (var loader in loaders)
+        {
+            Console.WriteLine(
+                $"  - {loader.DisplayName}: {loader.RootPath}");
+        }
+
+        // TEMPORARY:
+        // Until the GUI selection screen exists,
+        // use the first discovered loader.
+        selectedLoader =
+            loaders[0];
+
         Console.WriteLine();
         Console.WriteLine(
-            "No compatible Windower or Ashita installation was found.");
+            $"Selected loader: {selectedLoader.DisplayName}");
 
-        return;
-    }
+        // Save the selection for future launches.
 
-    Console.WriteLine(
-        $"Compatible loaders found: {loaders.Count}");
+        settings =
+            new LauncherSettings
+            {
+                LoaderType =
+                    selectedLoader.LoaderType,
 
-    foreach (var loader in loaders)
-    {
+                LoaderPath =
+                    selectedLoader.RootPath
+            };
+
+        settingsService.Save(
+            settings);
+
         Console.WriteLine(
-            $"  - {loader.DisplayName}: {loader.RootPath}");
+            "Loader selection saved.");
     }
-
-    // TEMPORARY:
-    // Select the first detected loader.
-    // The GUI will eventually handle this choice.
-    var selectedLoader =
-        loaders[0];
-
-    Console.WriteLine();
-    Console.WriteLine(
-        $"Using: {selectedLoader.DisplayName}");
 
     // ------------------------------------------------
     // DETECT PIVOT
     // ------------------------------------------------
+
+    Console.WriteLine();
+    Console.WriteLine(
+        "Checking Pivot installation...");
 
     bool pivotDetected =
         pivotService.DetectFromLoaderRoot(
@@ -100,8 +181,15 @@ try
 
     if (!pivotDetected)
     {
+        Console.WriteLine();
         Console.WriteLine(
-            "Pivot was not found for the selected loader.");
+            $"Pivot was not found for {selectedLoader.DisplayName}.");
+
+        Console.WriteLine(
+            "Pivot is required to use Cleopatra custom DAT files.");
+
+        Console.WriteLine(
+            "Please install Pivot for your loader and restart Cleopatra.");
 
         return;
     }
