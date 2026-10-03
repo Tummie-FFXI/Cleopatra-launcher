@@ -31,6 +31,9 @@ PivotService pivotService =
 InstallationStateService installationStateService =
     new InstallationStateService();
 
+LoaderProfileService loaderProfileService =
+    new LoaderProfileService();
+
 LauncherService launcherService =
     new LauncherService(
         loaderDetectionService,
@@ -38,7 +41,8 @@ LauncherService launcherService =
         pivotService,
         manifestService,
         fileUpdater,
-        installationStateService);
+        installationStateService,
+        loaderProfileService);
 
 try
 {
@@ -198,6 +202,51 @@ try
     {
         return;
     }
+
+    // ------------------------------------------------
+    // LOCATE CLEOPATRA XILOADER
+    // ------------------------------------------------
+
+    string xiLoaderPath;
+
+    if (OperatingSystem.IsWindows())
+    {
+        xiLoaderPath =
+            Path.Combine(
+                AppContext.BaseDirectory,
+                "tools",
+                "xiloader.exe");
+    }
+    else
+    {
+        // --------------------------------------------
+        // TEMPORARY MAC DEVELOPMENT PATH
+        // --------------------------------------------
+
+        string home =
+            Environment.GetFolderPath(
+                Environment.SpecialFolder.UserProfile);
+
+        xiLoaderPath =
+            Path.Combine(
+                home,
+                "CleopatraLoaderTests",
+                "Cleopatra",
+                "tools",
+                "xiloader.exe");
+    }
+
+    // ------------------------------------------------
+    // PREPARE CLEOPATRA LOADER PROFILE
+    // ------------------------------------------------
+
+    launcherService.PrepareLoaderProfile(
+        selectedLoader,
+        xiLoaderPath);
+
+    Console.WriteLine();
+    Console.WriteLine(
+        "Cleopatra loader profile ready.");
 }
 catch (Exception ex)
 {

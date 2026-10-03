@@ -10,6 +10,7 @@ public class LauncherService
     private readonly ManifestService _manifestService;
     private readonly FileUpdater _fileUpdater;
     private readonly InstallationStateService _installationStateService;
+    private readonly LoaderProfileService _loaderProfileService;
 
     public LauncherService(
         LoaderDetectionService loaderDetectionService,
@@ -17,7 +18,8 @@ public class LauncherService
         PivotService pivotService,
         ManifestService manifestService,
         FileUpdater fileUpdater,
-        InstallationStateService installationStateService)
+        InstallationStateService installationStateService,
+        LoaderProfileService loaderProfileService)
     {
         _loaderDetectionService =
             loaderDetectionService;
@@ -36,6 +38,9 @@ public class LauncherService
 
         _installationStateService =
             installationStateService;
+
+        _loaderProfileService =
+            loaderProfileService;
     }
 
     // ----------------------------------------------------
@@ -157,6 +162,19 @@ public class LauncherService
     public PivotInstallation? GetPivotInstallation()
     {
         return _pivotService.Installation;
+    }
+
+    // ----------------------------------------------------
+    // PREPARE CLEOPATRA LOADER PROFILE
+    // ----------------------------------------------------
+
+    public void PrepareLoaderProfile(
+        LoaderInstallation loader,
+        string xiLoaderPath)
+    {
+        _loaderProfileService.EnsureCleopatraProfile(
+            loader,
+            xiLoaderPath);
     }
 
     // ----------------------------------------------------
