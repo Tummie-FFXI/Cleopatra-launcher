@@ -7,8 +7,6 @@ public class LoaderDetectionService
     // ----------------------------------------------------
     // DETECT FROM PROVIDED PATHS
     // ----------------------------------------------------
-    // Used by our Mac development tests and later by
-    // manual "Browse for Loader Folder" selection.
 
     public List<LoaderInstallation> DetectFromPaths(
         IEnumerable<string> candidatePaths)
@@ -39,9 +37,6 @@ public class LoaderDetectionService
                 continue;
             }
 
-            // Prevent the same installation from appearing
-            // more than once if multiple candidate paths
-            // resolve to the same directory.
             if (detectedPaths.Add(
                 installation.RootPath))
             {
@@ -64,11 +59,8 @@ public class LoaderDetectionService
             return new List<LoaderInstallation>();
         }
 
-        List<string> candidatePaths =
-            GetWindowsCandidatePaths();
-
         return DetectFromPaths(
-            candidatePaths);
+            GetWindowsCandidatePaths());
     }
 
     // ----------------------------------------------------
@@ -100,98 +92,64 @@ public class LoaderDetectionService
             Environment.GetFolderPath(
                 Environment.SpecialFolder.ProgramFilesX86);
 
-        // ------------------------------------------------
-        // COMMON WINDOWER LOCATIONS
-        // ------------------------------------------------
+        // Windower
 
         AddCandidate(
             paths,
-            Path.Combine(
-                userProfile,
-                "Windower4"));
+            Path.Combine(userProfile, "Windower4"));
 
         AddCandidate(
             paths,
-            Path.Combine(
-                localAppData,
-                "Windower4"));
+            Path.Combine(localAppData, "Windower4"));
 
         AddCandidate(
             paths,
-            Path.Combine(
-                appData,
-                "Windower4"));
+            Path.Combine(appData, "Windower4"));
 
         AddCandidate(
             paths,
-            Path.Combine(
-                programFiles,
-                "Windower4"));
+            Path.Combine(programFiles, "Windower4"));
 
         AddCandidate(
             paths,
-            Path.Combine(
-                programFilesX86,
-                "Windower4"));
+            Path.Combine(programFilesX86, "Windower4"));
 
-        // ------------------------------------------------
-        // COMMON ASHITA LOCATIONS
-        // ------------------------------------------------
+        // Ashita
 
         AddCandidate(
             paths,
-            Path.Combine(
-                userProfile,
-                "Ashita"));
+            Path.Combine(userProfile, "Ashita"));
 
         AddCandidate(
             paths,
-            Path.Combine(
-                userProfile,
-                "Ashita4"));
+            Path.Combine(userProfile, "Ashita4"));
 
         AddCandidate(
             paths,
-            Path.Combine(
-                localAppData,
-                "Ashita"));
+            Path.Combine(localAppData, "Ashita"));
 
         AddCandidate(
             paths,
-            Path.Combine(
-                localAppData,
-                "Ashita4"));
+            Path.Combine(localAppData, "Ashita4"));
 
         AddCandidate(
             paths,
-            Path.Combine(
-                programFiles,
-                "Ashita"));
+            Path.Combine(programFiles, "Ashita"));
 
         AddCandidate(
             paths,
-            Path.Combine(
-                programFiles,
-                "Ashita4"));
+            Path.Combine(programFiles, "Ashita4"));
 
         AddCandidate(
             paths,
-            Path.Combine(
-                programFilesX86,
-                "Ashita"));
+            Path.Combine(programFilesX86, "Ashita"));
 
         AddCandidate(
             paths,
-            Path.Combine(
-                programFilesX86,
-                "Ashita4"));
+            Path.Combine(programFilesX86, "Ashita4"));
 
         return paths;
     }
-
-    // ----------------------------------------------------
-    // ADD CANDIDATE
-    // ----------------------------------------------------
 
     private static void AddCandidate(
         List<string> paths,
@@ -213,6 +171,12 @@ public class LoaderDetectionService
     // ----------------------------------------------------
     // IDENTIFY LOADER
     // ----------------------------------------------------
+    //
+    // IMPORTANT:
+    // This only identifies the loader.
+    // It does NOT require Pivot to be installed.
+    //
+    // PivotService is responsible for Pivot detection.
 
     private static LoaderInstallation? DetectLoader(
         string rootPath)
@@ -224,13 +188,18 @@ public class LoaderDetectionService
         // WINDOWER 4
         // ------------------------------------------------
 
-        string windowerPivot =
-            Path.Combine(
-                fullRoot,
-                "addons",
-                "XIPivot");
+        bool looksLikeWindower =
+            File.Exists(
+                Path.Combine(
+                    fullRoot,
+                    "Windower.exe"))
+            ||
+            Directory.Exists(
+                Path.Combine(
+                    fullRoot,
+                    "addons"));
 
-        if (Directory.Exists(windowerPivot))
+        if (looksLikeWindower)
         {
             return new LoaderInstallation
             {
@@ -249,13 +218,18 @@ public class LoaderDetectionService
         // ASHITA 4
         // ------------------------------------------------
 
-        string ashita4Pivot =
-            Path.Combine(
-                fullRoot,
-                "polplugins",
-                "pivot.dll");
+        bool looksLikeAshita4 =
+            Directory.Exists(
+                Path.Combine(
+                    fullRoot,
+                    "polplugins"))
+            ||
+            Directory.Exists(
+                Path.Combine(
+                    fullRoot,
+                    "config"));
 
-        if (File.Exists(ashita4Pivot))
+        if (looksLikeAshita4)
         {
             return new LoaderInstallation
             {
@@ -274,13 +248,13 @@ public class LoaderDetectionService
         // ASHITA 3
         // ------------------------------------------------
 
-        string ashita3Pivot =
-            Path.Combine(
-                fullRoot,
-                "plugins",
-                "XIPivot");
+        bool looksLikeAshita3 =
+            Directory.Exists(
+                Path.Combine(
+                    fullRoot,
+                    "plugins"));
 
-        if (Directory.Exists(ashita3Pivot))
+        if (looksLikeAshita3)
         {
             return new LoaderInstallation
             {
