@@ -178,6 +178,28 @@ public class LauncherService
     }
 
     // ----------------------------------------------------
+    // GET LAUNCH DESCRIPTION
+    // ----------------------------------------------------
+
+    public string GetLaunchDescription(
+        LoaderInstallation loader)
+    {
+        return _loaderProfileService
+            .GetLaunchDescription(loader);
+    }
+
+    // ----------------------------------------------------
+    // LAUNCH CLEOPATRA
+    // ----------------------------------------------------
+
+    public void LaunchGame(
+        LoaderInstallation loader)
+    {
+        _loaderProfileService.LaunchCleopatraProfile(
+            loader);
+    }
+
+    // ----------------------------------------------------
     // UPDATE CLEOPATRA
     // ----------------------------------------------------
 

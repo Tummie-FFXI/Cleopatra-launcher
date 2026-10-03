@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Xml.Linq;
 using Cleopatra.Launcher.Models;
 
@@ -47,7 +48,53 @@ public class LoaderProfileService
     }
 
     // ----------------------------------------------------
-    // WINDOWER 4
+    // GET CLEOPATRA LAUNCH DESCRIPTION
+    // ----------------------------------------------------
+
+    public string GetLaunchDescription(
+        LoaderInstallation loader)
+    {
+        return loader.LoaderType switch
+        {
+            LoaderType.Windower4 =>
+                $"\"{Path.Combine(loader.RootPath, "Windower.exe")}\" -p Cleopatra",
+
+            LoaderType.Ashita4 =>
+                "Ashita 4 launch command not implemented yet.",
+
+            _ =>
+                throw new NotSupportedException(
+                    $"Loader type {loader.LoaderType} is not supported.")
+        };
+    }
+
+    // ----------------------------------------------------
+    // LAUNCH CLEOPATRA PROFILE
+    // ----------------------------------------------------
+
+    public void LaunchCleopatraProfile(
+        LoaderInstallation loader)
+    {
+        switch (loader.LoaderType)
+        {
+            case LoaderType.Windower4:
+                LaunchWindowerProfile(
+                    loader);
+                break;
+
+            case LoaderType.Ashita4:
+                LaunchAshitaProfile(
+                    loader);
+                break;
+
+            default:
+                throw new NotSupportedException(
+                    $"Loader type {loader.LoaderType} is not supported.");
+        }
+    }
+
+    // ----------------------------------------------------
+    // WINDOWER 4 PROFILE
     // ----------------------------------------------------
 
     private static void EnsureWindowerProfile(
@@ -119,6 +166,48 @@ public class LoaderProfileService
     }
 
     // ----------------------------------------------------
+    // LAUNCH WINDOWER 4 PROFILE
+    // ----------------------------------------------------
+
+    private static void LaunchWindowerProfile(
+        LoaderInstallation loader)
+    {
+        string windowerPath =
+            Path.Combine(
+                loader.RootPath,
+                "Windower.exe");
+
+        if (!File.Exists(windowerPath))
+        {
+            throw new FileNotFoundException(
+                "Windower.exe was not found.",
+                windowerPath);
+        }
+
+        ProcessStartInfo startInfo =
+            new ProcessStartInfo
+            {
+                FileName =
+                    windowerPath,
+
+                WorkingDirectory =
+                    loader.RootPath,
+
+                UseShellExecute =
+                    true
+            };
+
+        startInfo.ArgumentList.Add(
+            "-p");
+
+        startInfo.ArgumentList.Add(
+            CleopatraProfileName);
+
+        Process.Start(
+            startInfo);
+    }
+
+    // ----------------------------------------------------
     // SET PROFILE VALUE
     // ----------------------------------------------------
 
@@ -146,7 +235,7 @@ public class LoaderProfileService
     }
 
     // ----------------------------------------------------
-    // ASHITA 4
+    // ASHITA 4 PROFILE
     // ----------------------------------------------------
 
     private static void EnsureAshitaProfile(
@@ -154,9 +243,23 @@ public class LoaderProfileService
         string xiLoaderPath)
     {
         // Ashita 4 support will be implemented after
-        // the Windower profile workflow is tested.
+        // the Windower workflow is complete.
 
         throw new NotImplementedException(
             "Ashita 4 profile creation is not implemented yet.");
+    }
+
+    // ----------------------------------------------------
+    // LAUNCH ASHITA 4 PROFILE
+    // ----------------------------------------------------
+
+    private static void LaunchAshitaProfile(
+        LoaderInstallation loader)
+    {
+        // Ashita 4 support will be implemented after
+        // the Windower workflow is complete.
+
+        throw new NotImplementedException(
+            "Ashita 4 profile launching is not implemented yet.");
     }
 }

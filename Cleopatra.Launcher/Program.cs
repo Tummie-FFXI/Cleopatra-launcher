@@ -211,6 +211,13 @@ try
 
     if (OperatingSystem.IsWindows())
     {
+        // Production layout:
+        //
+        // Cleopatra/
+        // ├── Cleopatra.Launcher.exe
+        // └── tools/
+        //     └── xiloader.exe
+
         xiLoaderPath =
             Path.Combine(
                 AppContext.BaseDirectory,
@@ -247,6 +254,21 @@ try
     Console.WriteLine();
     Console.WriteLine(
         "Cleopatra loader profile ready.");
+
+    // ------------------------------------------------
+    // DISPLAY LAUNCH COMMAND
+    // ------------------------------------------------
+    // DEVELOPMENT TEST ONLY:
+    // Verify the command Cleopatra will use without
+    // actually attempting to launch Windower on macOS.
+
+    Console.WriteLine();
+    Console.WriteLine(
+        "Launch command:");
+
+    Console.WriteLine(
+        launcherService.GetLaunchDescription(
+            selectedLoader));
 }
 catch (Exception ex)
 {
