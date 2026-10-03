@@ -111,7 +111,6 @@ try
             string[] candidatePaths =
             {
                 Path.Combine(testRoot, "Windower"),
-                Path.Combine(testRoot, "Ashita3"),
                 Path.Combine(testRoot, "Ashita4")
             };
 

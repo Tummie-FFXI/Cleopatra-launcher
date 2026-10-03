@@ -244,31 +244,6 @@ public class LoaderDetectionService
             };
         }
 
-        // ------------------------------------------------
-        // ASHITA 3
-        // ------------------------------------------------
-
-        bool looksLikeAshita3 =
-            Directory.Exists(
-                Path.Combine(
-                    fullRoot,
-                    "plugins"));
-
-        if (looksLikeAshita3)
-        {
-            return new LoaderInstallation
-            {
-                LoaderType =
-                    LoaderType.Ashita3,
-
-                RootPath =
-                    fullRoot,
-
-                DisplayName =
-                    "Ashita v3"
-            };
-        }
-
         return null;
     }
 }

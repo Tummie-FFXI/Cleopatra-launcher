@@ -124,49 +124,6 @@ public class PivotService
             return true;
         }
 
-        // ------------------------------------------------
-        // ASHITA 3
-        // ------------------------------------------------
-
-        string ashita3Pivot =
-            Path.Combine(
-                fullRoot,
-                "plugins",
-                "XIPivot");
-
-        if (Directory.Exists(ashita3Pivot))
-        {
-            string datRoot =
-                Path.Combine(
-                    ashita3Pivot,
-                    "DATs");
-
-            _installation =
-                new PivotInstallation
-                {
-                    LoaderType =
-                        LoaderType.Ashita3,
-
-                    LoaderRoot =
-                        fullRoot,
-
-                    PivotRoot =
-                        ashita3Pivot,
-
-                    DatRoot =
-                        datRoot,
-
-                    CleopatraRoot =
-                        Path.Combine(
-                            datRoot,
-                            "Cleopatra"),
-
-                    ConfigurationPath = ""
-                };
-
-            return true;
-        }
-
         _installation = null;
 
         return false;
