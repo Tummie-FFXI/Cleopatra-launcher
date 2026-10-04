@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cleopatra XI Launcher Mockup</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+
+            background:
+                radial-gradient(
+                    circle at 50% 20%,
+                    #25231f 0%,
+                    #111 48%,
+                    #080808 100%
+                );
+
+            color: #e8e3d8;
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif;
+        }
+
+        body {
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 30px;
+        }
+
+        /* ==========================================
+           LAUNCHER WINDOW
+           ========================================== */
+
+        .launcher {
+            width: 1000px;
+            min-height: 720px;
+
+            display: grid;
+
+            grid-template-rows:
+                75px
+                minmax(340px, 1fr)
+                auto
+                180px
+                50px;
+
+            background: #101010;
+
+            border: 1px solid #39342c;
+
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.65),
+                0 0 0 1px rgba(184, 154, 99, 0.08);
+
+            overflow: hidden;
+        }
+
+        /* ==========================================
+           HEADER
+           ========================================== */
+
+        .header {
+            background: #151515;
+
+            border-bottom:
+                1px solid #2b2925;
+
+            padding:
+                0 28px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            color: #b89a63;
+
+            font-size: 21px;
+
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            margin-top: 4px;
+
+            color: #96938c;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            font-size: 10px;
+
+            letter-spacing: 1.5px;
+        }
+
+        .window-controls {
+            color: #77736b;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            font-size: 13px;
+
+            word-spacing: 15px;
+        }
+
+        /* ==========================================
+           HERO
+           ========================================== */
+
+        .hero {
+            position: relative;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+
+            background-image:
+
+                linear-gradient(
+                    to bottom,
+                    rgba(5, 5, 5, 0.25) 0%,
+                    rgba(5, 5, 5, 0.40) 60%,
+                    rgba(5, 5, 5, 0.72) 100%
+                ),
+
+                url("../Assets/launcher-hero.png");
+
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .hero::before {
+            content: "";
+
+            position: absolute;
+
+            inset: 0;
+
+            background:
+
+                radial-gradient(
+                    ellipse at center,
+                    rgba(0, 0, 0, 0.08) 0%,
+                    rgba(0, 0, 0, 0.12) 45%,
+                    rgba(0, 0, 0, 0.52) 100%
+                );
+
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+
+            z-index: 2;
+
+            width: 340px;
+
+            text-align: center;
+        }
+
+        .ornament {
+            color: #7d6947;
+
+            font-size: 18px;
+
+            letter-spacing: 9px;
+
+            margin-bottom: 12px;
+        }
+
+        .hero-title {
+            font-size: 42px;
+
+            font-weight: normal;
+
+            letter-spacing: 7px;
+
+            text-shadow:
+                0 2px 15px rgba(0, 0, 0, 0.8);
+        }
+
+        .gold-line {
+            width: 270px;
+            height: 1px;
+
+            margin:
+                13px auto 27px;
+
+            background:
+
+                linear-gradient(
+                    90deg,
+                    transparent,
+                    #b89a63 18%,
+                    #b89a63 82%,
+                    transparent
+                );
+        }
+
+        /* ==========================================
+           SERVER INFORMATION
+           ========================================== */
+
+        .server-info {
+            width: 310px;
+
+            margin: auto;
+
+            display: grid;
+
+            grid-template-columns:
+                1fr auto;
+
+            row-gap: 12px;
+
+            text-align: left;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            font-size: 11px;
+        }
+
+        .server-label {
+            color: #96938c;
+
+            letter-spacing: 1px;
+        }
+
+        .server-value {
+            color: #e8e3d8;
+
+            min-width: 70px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+
+            display: inline-block;
+
+            margin-right: 7px;
+
+            border-radius: 50%;
+
+            background: #66b878;
+
+            box-shadow:
+                0 0 8px
+                rgba(102, 184, 120, 0.4);
+        }
+
+        /* ==========================================
+           PLAY BUTTON
+           ========================================== */
+
+        .play {
+            width: 285px;
+            height: 55px;
+
+            margin-top: 37px;
+
+            border:
+                1px solid #c6a970;
+
+            border-radius: 3px;
+
+            background:
+
+                linear-gradient(
+                    to bottom,
+                    #c2a46a,
+                    #aa8b54
+                );
+
+            color: #111;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            font-size: 17px;
+
+            font-weight: bold;
+
+            letter-spacing: 2px;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 5px 20px
+                rgba(0, 0, 0, 0.3);
+        }
+
+        .play:hover:not(:disabled) {
+            filter: brightness(1.08);
+        }
+
+        .play:disabled {
+            border-color: #514b40;
+
+            background: #393630;
+
+            color: #77736d;
+
+            cursor: default;
+
+            box-shadow: none;
+
+            filter: none;
+        }
+
+        /* ==========================================
+           UPDATE AREA
+           ========================================== */
+
+        .update-bar {
+            min-height: 45px;
+
+            padding:
+                0 28px;
+
+            background: #171717;
+
+            border-top:
+                1px solid #2b2925;
+
+            border-bottom:
+                1px solid #2b2925;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            font-size: 12px;
+
+            transition:
+                padding 180ms ease;
+        }
+
+        .update-bar.expanded {
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+
+        .update-summary {
+            min-height: 43px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 24px;
+        }
+
+        .update-status {
+            color: #ddd8cd;
+        }
+
+        .status-icon {
+            display: inline-block;
+
+            width: 18px;
+
+            margin-right: 3px;
+
+            color: #7bb287;
+
+            text-align: center;
+        }
+
+        .update-bar[data-state="checking"]
+        .status-icon {
+            color: #b89a63;
+        }
+
+        .update-bar[data-state="updating"]
+        .status-icon {
+            color: #b89a63;
+        }
+
+        .update-bar[data-state="error"]
+        .status-icon {
+            color: #c7796f;
+        }
+
+        .version {
+            color: #77736d;
+
+            white-space: nowrap;
+        }
+
+        .update-actions {
+            display: flex;
+            align-items: center;
+
+            gap: 16px;
+        }
+
+        /* ==========================================
+           EXPANDED UPDATE
+           ========================================== */
+
+        .update-detail {
+            display: none;
+
+            padding:
+                0
+                0
+                3px
+                21px;
+        }
+
+        .update-bar.expanded
+        .update-detail {
+            display: block;
+        }
+
+        .update-file-row {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 24px;
+
+            margin-bottom: 8px;
+        }
+
+        .update-file {
+            color: #aaa69d;
+
+            font-family:
+                ui-monospace,
+                SFMono-Regular,
+                Menlo,
+                Monaco,
+                Consolas,
+                monospace;
+
+            font-size: 11px;
+        }
+
+        .update-percent {
+            color: #96938c;
+
+            font-size: 11px;
+        }
+
+        /* ==========================================
+           PROGRESS BAR
+           ========================================== */
+
+        .progress-track {
+            height: 2px;
+
+            overflow: hidden;
+
+            background: #302d28;
+        }
+
+        .progress-fill {
+            width: 68%;
+            height: 100%;
+
+            background: #b89a63;
+
+            transition:
+                width 250ms ease;
+        }
+
+        /* ==========================================
+           UPDATE BUTTONS
+           ========================================== */
+
+        .details-button,
+        .retry-button {
+            padding: 0;
+
+            border: 0;
+
+            background: transparent;
+
+            color: #827052;
+
+            font: inherit;
+
+            cursor: pointer;
+        }
+
+        .details-button:hover,
+        .retry-button:hover {
+            color: #b89a63;
+        }
+
+        /* ==========================================
+           FILE DETAILS
+           ========================================== */
+
+        .file-list {
+            display: none;
+
+            margin-top: 12px;
+
+            padding-top: 10px;
+
+            border-top:
+                1px solid #2b2925;
+
+            color: #8f8b83;
+
+            font-family:
+                ui-monospace,
+                SFMono-Regular,
+                Menlo,
+                Monaco,
+                Consolas,
+                monospace;
+
+            font-size: 10px;
+
+            line-height: 1.7;
+        }
+
+        .update-bar.show-details
+        .file-list {
+            display: block;
+        }
+
+        /* ==========================================
+           NEWS / LINKS
+           ========================================== */
+
+        .information {
+            display: grid;
+
+            grid-template-columns:
+                2fr
+                1px
+                1fr;
+
+            padding:
+                22px 28px;
+
+            background:
+
+                linear-gradient(
+                    to bottom,
+                    #101010,
+                    #0e0e0e
+                );
+        }
+
+        .section-title {
+            margin-bottom: 15px;
+
+            color: #b89a63;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            font-size: 11px;
+
+            font-weight: bold;
+
+            letter-spacing: 1.5px;
+        }
+
+        .news {
+            padding-right: 35px;
+        }
+
+        .news-item {
+            margin-bottom: 11px;
+
+            display: grid;
+
+            grid-template-columns:
+                68px
+                1fr;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            font-size: 12px;
+        }
+
+        .news-date {
+            color: #827052;
+        }
+
+        .news-title {
+            color: #ded9ce;
+        }
+
+        .divider {
+            background:
+
+                linear-gradient(
+                    to bottom,
+                    transparent,
+                    #39342c 15%,
+                    #39342c 85%,
+                    transparent
+                );
+        }
+
+        .links {
+            padding-left: 35px;
+        }
+
+        .link {
+            margin-bottom: 11px;
+
+            color: #ded9ce;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            font-size: 12px;
+
+            cursor: pointer;
+        }
+
+        .link:hover {
+            color: #b89a63;
+        }
+
+        /* ==========================================
+           FOOTER
+           ========================================== */
+
+        .footer {
+            padding:
+                0 28px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            background: #151515;
+
+            border-top:
+                1px solid #2b2925;
+
+            font-family:
+                Arial,
+                sans-serif;
+        }
+
+        .settings {
+            color: #96938c;
+
+            font-size: 12px;
+
+            cursor: pointer;
+        }
+
+        .settings:hover {
+            color: #b89a63;
+        }
+
+        .footer-brand {
+            color: #827052;
+
+            font-size: 10px;
+
+            letter-spacing: 1.5px;
+        }
+
+        /* ==========================================
+           MOCKUP TEST CONTROLS
+
+           These are ONLY here so we can preview
+           the launcher states on the Mac.
+           ========================================== */
+
+        .mockup-controls {
+            position: fixed;
+
+            right: 18px;
+            bottom: 18px;
+
+            z-index: 50;
+
+            display: flex;
+
+            gap: 6px;
+
+            padding: 7px;
+
+            border:
+                1px solid #39342c;
+
+            border-radius: 4px;
+
+            background:
+                rgba(15, 15, 15, 0.94);
+
+            box-shadow:
+                0 8px 30px
+                rgba(0, 0, 0, 0.35);
+
+            font-family:
+                Arial,
+                sans-serif;
+        }
+
+        .mockup-controls button {
+            padding:
+                6px 9px;
+
+            border:
+                1px solid #39342c;
+
+            border-radius: 2px;
+
+            background: #1b1b1b;
+
+            color: #aaa69d;
+
+            font-size: 10px;
+
+            cursor: pointer;
+        }
+
+        .mockup-controls button:hover {
+            color: #d8c08e;
+
+            border-color: #827052;
+        }
+
+        /* ==========================================
+           SMALLER DISPLAY
+           ========================================== */
+
+        @media (max-width: 1050px) {
+
+            body {
+                padding: 0;
+            }
+
+            .launcher {
+                width: 100vw;
+
+                min-width: 800px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="launcher">
+
+    <!-- ==========================================
+         HEADER
+         ========================================== -->
+
+    <header class="header">
+
+        <div>
+
+            <div class="brand">
+                CLEOPATRA XI
+            </div>
+
+            <div class="subtitle">
+                A FINAL FANTASY XI PRIVATE SERVER
+            </div>
+
+        </div>
+
+        <div class="window-controls">
+            − □ ×
+        </div>
+
+    </header>
+
+
+    <!-- ==========================================
+         HERO
+         ========================================== -->
+
+    <main class="hero">
+
+        <div class="hero-content">
+
+            <div class="ornament">
+                ◇ ─ ◇
+            </div>
+
+            <div class="hero-title">
+                CLEOPATRA
+            </div>
+
+            <div class="gold-line">
+            </div>
+
+
+            <!-- SERVER STATUS -->
+
+            <div class="server-info">
+
+                <div class="server-label">
+                    SERVER STATUS
+                </div>
+
+                <div class="server-value">
+
+                    <span class="status-dot">
+                    </span>
+
+                    ONLINE
+
+                </div>
+
+
+                <div class="server-label">
+                    PLAYERS ONLINE
+                </div>
+
+                <div class="server-value">
+                    147
+                </div>
+
+            </div>
+
+
+            <!-- PLAY -->
+
+            <button class="play"
+                    id="playButton">
+
+                PLAY XI
+
+            </button>
+
+        </div>
+
+    </main>
+
+
+    <!-- ==========================================
+         UPDATE AREA
+         ========================================== -->
+
+    <section class="update-bar"
+             id="updateBar"
+             data-state="ready">
+
+
+        <!-- SUMMARY ROW -->
+
+        <div class="update-summary">
+
+            <div class="update-status">
+
+                <span class="status-icon"
+                      id="statusIcon">
+
+                    ✓
+
+                </span>
+
+                <span id="statusText">
+                    Cleopatra is up to date
+                </span>
+
+            </div>
+
+
+            <div class="update-actions">
+
+
+                <!-- DETAILS -->
+
+                <button class="details-button"
+                        id="detailsButton"
+                        type="button"
+                        hidden>
+
+                    Details ▾
+
+                </button>
+
+
+                <!-- RETRY -->
+
+                <button class="retry-button"
+                        id="retryButton"
+                        type="button"
+                        hidden>
+
+                    RETRY
+
+                </button>
+
+
+                <!-- VERSION / COUNT -->
+
+                <div class="version"
+                     id="statusMeta">
+
+                    Version 1.0.3
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ======================================
+             EXPANDED UPDATE INFORMATION
+             ====================================== -->
+
+        <div class="update-detail">
+
+
+            <!-- CURRENT DAT -->
+
+            <div class="update-file-row">
+
+                <div class="update-file"
+                     id="currentFile">
+
+                    ROM/27/82.DAT
+
+                </div>
+
+                <div class="update-percent"
+                     id="updatePercent">
+
+                    68%
+
+                </div>
+
+            </div>
+
+
+            <!-- PROGRESS -->
+
+            <div class="progress-track">
+
+                <div class="progress-fill"
+                     id="progressFill">
+                </div>
+
+            </div>
+
+
+            <!-- FILE DETAILS -->
+
+            <div class="file-list"
+                 id="fileList">
+
+                ✓ ROM/0/1.DAT<br>
+
+                ✓ ROM/27/81.DAT<br>
+
+                ↓ ROM/27/82.DAT
+                &nbsp;&nbsp;
+                68%
+                <br>
+
+                &nbsp;&nbsp;
+                ROM/27/83.DAT
+                <br>
+
+                &nbsp;&nbsp;
+                ROM/119/51.DAT
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         NEWS / LINKS
+         ========================================== -->
+
+    <section class="information">
+
+
+        <!-- NEWS -->
+
+        <div class="news">
+
+            <div class="section-title">
+                NEWS
+            </div>
+
+
+            <div class="news-item">
+
+                <span class="news-date">
+                    OCT 02
+                </span>
+
+                <span class="news-title">
+                    New Weaponskill Effects
+                </span>
+
+            </div>
+
+
+            <div class="news-item">
+
+                <span class="news-date">
+                    SEP 28
+                </span>
+
+                <span class="news-title">
+                    October Update
+                </span>
+
+            </div>
+
+
+            <div class="news-item">
+
+                <span class="news-date">
+                    SEP 20
+                </span>
+
+                <span class="news-title">
+                    Server Notes
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- DIVIDER -->
+
+        <div class="divider">
+        </div>
+
+
+        <!-- LINKS -->
+
+        <div class="links">
+
+            <div class="section-title">
+                LINKS
+            </div>
+
+            <div class="link">
+                Website
+            </div>
+
+            <div class="link">
+                Discord
+            </div>
+
+            <div class="link">
+                Patch Notes
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================================
+         FOOTER
+         ========================================== -->
+
+    <footer class="footer">
+
+        <div class="settings">
+            ⚙ &nbsp; Settings
+        </div>
+
+        <div class="footer-brand">
+            CLEOPATRA XI
+        </div>
+
+    </footer>
+
+</div>
+
+
+<!-- ==============================================
+     MOCKUP-ONLY CONTROLS
+
+     These buttons will NOT be part of the real
+     WPF launcher. They let us preview each state.
+     ============================================== -->
+
+<div class="mockup-controls">
+
+    <button type="button"
+            data-preview-state="checking">
+
+        Checking
+
+    </button>
+
+    <button type="button"
+            data-preview-state="updating">
+
+        Updating
+
+    </button>
+
+    <button type="button"
+            data-preview-state="ready">
+
+        Ready
+
+    </button>
+
+    <button type="button"
+            data-preview-state="error">
+
+        Error
+
+    </button>
+
+</div>
+
+
+<script>
+
+    // =============================================
+    // ELEMENTS
+    // =============================================
+
+    const updateBar =
+        document.getElementById(
+            "updateBar");
+
+    const statusIcon =
+        document.getElementById(
+            "statusIcon");
+
+    const statusText =
+        document.getElementById(
+            "statusText");
+
+    const statusMeta =
+        document.getElementById(
+            "statusMeta");
+
+    const detailsButton =
+        document.getElementById(
+            "detailsButton");
+
+    const retryButton =
+        document.getElementById(
+            "retryButton");
+
+    const playButton =
+        document.getElementById(
+            "playButton");
+
+    const currentFile =
+        document.getElementById(
+            "currentFile");
+
+    const updatePercent =
+        document.getElementById(
+            "updatePercent");
+
+    const progressFill =
+        document.getElementById(
+            "progressFill");
+
+
+    // =============================================
+    // UPDATE STATE
+    // =============================================
+
+    function setUpdateState(state)
+    {
+        updateBar.dataset.state =
+            state;
+
+        updateBar.classList.remove(
+            "expanded",
+            "show-details");
+
+        detailsButton.hidden =
+            true;
+
+        retryButton.hidden =
+            true;
+
+        statusMeta.hidden =
+            false;
+
+        playButton.disabled =
+            state !== "ready";
+
+        detailsButton.textContent =
+            "Details ▾";
+
+
+        // =========================================
+        // CHECKING
+        // =========================================
+
+        if (state === "checking")
+        {
+            statusIcon.textContent =
+                "◌";
+
+            statusText.textContent =
+                "Checking Cleopatra files...";
+
+            statusMeta.textContent =
+                "Please wait";
+
+            return;
+        }
+
+
+        // =========================================
+        // UPDATING
+        // =========================================
+
+        if (state === "updating")
+        {
+            updateBar.classList.add(
+                "expanded");
+
+            statusIcon.textContent =
+                "↓";
+
+            statusText.textContent =
+                "Updating Cleopatra";
+
+            statusMeta.textContent =
+                "3 of 8";
+
+            detailsButton.hidden =
+                false;
+
+            currentFile.textContent =
+                "ROM/27/82.DAT";
+
+            updatePercent.textContent =
+                "68%";
+
+            progressFill.style.width =
+                "68%";
+
+            return;
+        }
+
+
+        // =========================================
+        // ERROR
+        // =========================================
+
+        if (state === "error")
+        {
+            statusIcon.textContent =
+                "!";
+
+            statusText.textContent =
+                "Update failed: ROM/27/82.DAT";
+
+            statusMeta.hidden =
+                true;
+
+            retryButton.hidden =
+                false;
+
+            return;
+        }
+
+
+        // =========================================
+        // READY
+        // =========================================
+
+        statusIcon.textContent =
+            "✓";
+
+        statusText.textContent =
+            "Cleopatra is up to date";
+
+        statusMeta.textContent =
+            "Version 1.0.3";
+
+        playButton.disabled =
+            false;
+    }
+
+
+    // =============================================
+    // DETAILS BUTTON
+    // =============================================
+
+    detailsButton.addEventListener(
+        "click",
+        () =>
+        {
+            const showing =
+                updateBar.classList.toggle(
+                    "show-details");
+
+            detailsButton.textContent =
+                showing
+                    ? "Details ▴"
+                    : "Details ▾";
+        });
+
+
+    // =============================================
+    // RETRY BUTTON
+    // =============================================
+
+    retryButton.addEventListener(
+        "click",
+        () =>
+        {
+            setUpdateState(
+                "checking");
+        });
+
+
+    // =============================================
+    // MOCKUP STATE BUTTONS
+    // =============================================
+
+    document
+        .querySelectorAll(
+            "[data-preview-state]")
+        .forEach(
+            button =>
+            {
+                button.addEventListener(
+                    "click",
+                    () =>
+                    {
+                        setUpdateState(
+                            button.dataset.previewState);
+                    });
+            });
+
+
+    // =============================================
+    // INITIAL STATE
+    // =============================================
+
+    setUpdateState(
+        "ready");
+
+</script>
+
+</body>
+</html>
