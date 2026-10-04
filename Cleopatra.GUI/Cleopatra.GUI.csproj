@@ -9,4 +9,12 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Cleopatra.Launcher\Cleopatra.Launcher.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\launcher-hero.png" />
+  </ItemGroup>
+
 </Project>
