@@ -98,23 +98,6 @@ public class FileUpdater
             long? totalBytes =
                 response.Content.Headers.ContentLength;
 
-            // --------------------------------------------
-            // OPEN DOWNLOAD STREAM
-            // --------------------------------------------
-
-            await using Stream downloadStream =
-                await response.Content.ReadAsStreamAsync(
-                    cancellationToken);
-
-            await using FileStream fileStream =
-                new FileStream(
-                    tempPath,
-                    FileMode.Create,
-                    FileAccess.Write,
-                    FileShare.None,
-                    DownloadBufferSize,
-                    useAsync: true);
-
             byte[] buffer =
                 new byte[DownloadBufferSize];
 
@@ -134,39 +117,71 @@ public class FileUpdater
                         totalBytes)));
 
             // --------------------------------------------
-            // STREAM FILE TO DISK
+            // DOWNLOAD TO TEMPORARY FILE
+            // --------------------------------------------
+            //
+            // Keep the download streams inside their own
+            // scope. This guarantees the FileStream is
+            // closed before we reopen the temporary file
+            // for SHA-256 verification or move it into
+            // place on Windows.
             // --------------------------------------------
 
-            while ((bytesRead =
-                await downloadStream.ReadAsync(
-                    buffer.AsMemory(
-                        0,
-                        buffer.Length),
-                    cancellationToken)) > 0)
+            await using (
+                Stream downloadStream =
+                    await response.Content.ReadAsStreamAsync(
+                        cancellationToken))
             {
-                await fileStream.WriteAsync(
-                    buffer.AsMemory(
-                        0,
-                        bytesRead),
-                    cancellationToken);
+                await using (
+                    FileStream fileStream =
+                        new FileStream(
+                            tempPath,
+                            FileMode.Create,
+                            FileAccess.Write,
+                            FileShare.None,
+                            DownloadBufferSize,
+                            useAsync: true))
+                {
+                    // ----------------------------------------
+                    // STREAM FILE TO DISK
+                    // ----------------------------------------
 
-                totalBytesRead +=
-                    bytesRead;
+                    while ((bytesRead =
+                        await downloadStream.ReadAsync(
+                            buffer.AsMemory(
+                                0,
+                                buffer.Length),
+                            cancellationToken)) > 0)
+                    {
+                        await fileStream.WriteAsync(
+                            buffer.AsMemory(
+                                0,
+                                bytesRead),
+                            cancellationToken);
 
-                progress?.Report(
-                    new FileDownloadProgress(
-                        totalBytesRead,
-                        totalBytes,
-                        CalculatePercent(
-                            totalBytesRead,
-                            totalBytes)));
+                        totalBytesRead +=
+                            bytesRead;
+
+                        progress?.Report(
+                            new FileDownloadProgress(
+                                totalBytesRead,
+                                totalBytes,
+                                CalculatePercent(
+                                    totalBytesRead,
+                                    totalBytes)));
+                    }
+
+                    await fileStream.FlushAsync(
+                        cancellationToken);
+                }
             }
-
-            await fileStream.FlushAsync(
-                cancellationToken);
 
             // --------------------------------------------
             // VERIFY SHA-256
+            // --------------------------------------------
+            //
+            // The download FileStream has been disposed
+            // before CalculateSha256 opens tempPath.
             // --------------------------------------------
 
             string downloadedHash =
