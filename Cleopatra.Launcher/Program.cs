@@ -34,6 +34,9 @@ InstallationStateService installationStateService =
 LoaderProfileService loaderProfileService =
     new LoaderProfileService();
 
+XiLoaderDetectionService xiLoaderDetectionService =
+    new XiLoaderDetectionService();
+
 LauncherService launcherService =
     new LauncherService(
         loaderDetectionService,
@@ -42,7 +45,8 @@ LauncherService launcherService =
         manifestService,
         fileUpdater,
         installationStateService,
-        loaderProfileService);
+        loaderProfileService,
+        xiLoaderDetectionService);
 
 try
 {
@@ -204,44 +208,30 @@ try
     }
 
     // ------------------------------------------------
-    // LOCATE CLEOPATRA XILOADER
+    // LOCATE XILOADER
     // ------------------------------------------------
 
-    string xiLoaderPath;
+    Console.WriteLine();
+    Console.WriteLine(
+        "Locating XiLoader...");
 
-    if (OperatingSystem.IsWindows())
+    string? xiLoaderPath =
+        launcherService.FindXiLoader(
+            selectedLoader);
+
+    if (string.IsNullOrWhiteSpace(xiLoaderPath))
     {
-        // Production layout:
-        //
-        // Cleopatra/
-        // ├── Cleopatra.Launcher.exe
-        // └── tools/
-        //     └── xiloader.exe
+        Console.WriteLine(
+            "XiLoader could not be found.");
 
-        xiLoaderPath =
-            Path.Combine(
-                AppContext.BaseDirectory,
-                "tools",
-                "xiloader.exe");
+        Console.WriteLine(
+            "A valid xiloader.exe is required to launch Cleopatra.");
+
+        return;
     }
-    else
-    {
-        // --------------------------------------------
-        // TEMPORARY MAC DEVELOPMENT PATH
-        // --------------------------------------------
 
-        string home =
-            Environment.GetFolderPath(
-                Environment.SpecialFolder.UserProfile);
-
-        xiLoaderPath =
-            Path.Combine(
-                home,
-                "CleopatraLoaderTests",
-                "Cleopatra",
-                "tools",
-                "xiloader.exe");
-    }
+    Console.WriteLine(
+        $"XiLoader location: {xiLoaderPath}");
 
     // ------------------------------------------------
     // PREPARE CLEOPATRA LOADER PROFILE

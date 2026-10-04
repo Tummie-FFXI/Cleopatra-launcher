@@ -7,9 +7,14 @@ public class FileUpdater
 {
     private readonly HttpClient _client;
 
-    public FileUpdater(HttpClient client)
+    private const int DownloadBufferSize =
+        81920;
+
+    public FileUpdater(
+        HttpClient client)
     {
-        _client = client;
+        _client =
+            client;
     }
 
     // ----------------------------------------------------
@@ -26,7 +31,8 @@ public class FileUpdater
         }
 
         string localHash =
-            CalculateSha256(destinationPath);
+            CalculateSha256(
+                destinationPath);
 
         if (localHash.Equals(
             updateFile.Sha256,
@@ -44,69 +50,205 @@ public class FileUpdater
 
     public async Task<bool> DownloadAndVerifyAsync(
         UpdateFile updateFile,
-        string destinationPath)
+        string destinationPath,
+        IProgress<FileDownloadProgress>? progress = null,
+        CancellationToken cancellationToken = default)
     {
         string tempPath =
             destinationPath + ".download";
 
         string? directory =
-            Path.GetDirectoryName(destinationPath);
+            Path.GetDirectoryName(
+                destinationPath);
 
         if (!string.IsNullOrEmpty(directory))
         {
-            Directory.CreateDirectory(directory);
+            Directory.CreateDirectory(
+                directory);
         }
 
         try
         {
-            // Clean up an abandoned temporary download.
+            // --------------------------------------------
+            // CLEAN UP ABANDONED TEMPORARY DOWNLOAD
+            // --------------------------------------------
+
             if (File.Exists(tempPath))
             {
-                File.Delete(tempPath);
+                File.Delete(
+                    tempPath);
             }
 
-            // Download the new file.
-            byte[] fileData =
-                await _client.GetByteArrayAsync(
-                    updateFile.Url);
+            // --------------------------------------------
+            // BEGIN HTTP DOWNLOAD
+            //
+            // ResponseHeadersRead is important here.
+            // It prevents HttpClient from buffering the
+            // entire DAT before returning control to us.
+            // --------------------------------------------
 
-            // Write to a temporary file first.
-            await File.WriteAllBytesAsync(
-                tempPath,
-                fileData);
+            using HttpResponseMessage response =
+                await _client.GetAsync(
+                    updateFile.Url,
+                    HttpCompletionOption.ResponseHeadersRead,
+                    cancellationToken);
 
-            // Verify SHA-256 before replacing anything.
+            response.EnsureSuccessStatusCode();
+
+            long? totalBytes =
+                response.Content.Headers.ContentLength;
+
+            // --------------------------------------------
+            // OPEN DOWNLOAD STREAM
+            // --------------------------------------------
+
+            await using Stream downloadStream =
+                await response.Content.ReadAsStreamAsync(
+                    cancellationToken);
+
+            await using FileStream fileStream =
+                new FileStream(
+                    tempPath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    DownloadBufferSize,
+                    useAsync: true);
+
+            byte[] buffer =
+                new byte[DownloadBufferSize];
+
+            long totalBytesRead =
+                0;
+
+            int bytesRead;
+
+            // Initial progress notification.
+
+            progress?.Report(
+                new FileDownloadProgress(
+                    totalBytesRead,
+                    totalBytes,
+                    CalculatePercent(
+                        totalBytesRead,
+                        totalBytes)));
+
+            // --------------------------------------------
+            // STREAM FILE TO DISK
+            // --------------------------------------------
+
+            while ((bytesRead =
+                await downloadStream.ReadAsync(
+                    buffer.AsMemory(
+                        0,
+                        buffer.Length),
+                    cancellationToken)) > 0)
+            {
+                await fileStream.WriteAsync(
+                    buffer.AsMemory(
+                        0,
+                        bytesRead),
+                    cancellationToken);
+
+                totalBytesRead +=
+                    bytesRead;
+
+                progress?.Report(
+                    new FileDownloadProgress(
+                        totalBytesRead,
+                        totalBytes,
+                        CalculatePercent(
+                            totalBytesRead,
+                            totalBytes)));
+            }
+
+            await fileStream.FlushAsync(
+                cancellationToken);
+
+            // --------------------------------------------
+            // VERIFY SHA-256
+            // --------------------------------------------
+
             string downloadedHash =
-                CalculateSha256(tempPath);
+                CalculateSha256(
+                    tempPath);
 
             if (!downloadedHash.Equals(
                 updateFile.Sha256,
                 StringComparison.OrdinalIgnoreCase))
             {
-                File.Delete(tempPath);
+                File.Delete(
+                    tempPath);
 
                 return false;
             }
 
-            // Verification succeeded.
-            // Replace the real file.
+            // --------------------------------------------
+            // VERIFICATION SUCCEEDED
+            //
+            // Only now do we replace the actual
+            // Cleopatra DAT.
+            // --------------------------------------------
+
             File.Move(
                 tempPath,
                 destinationPath,
                 true);
 
+            // Make sure the GUI receives a final 100%
+            // notification when the server supplied a
+            // Content-Length.
+
+            if (totalBytes.HasValue)
+            {
+                progress?.Report(
+                    new FileDownloadProgress(
+                        totalBytesRead,
+                        totalBytes,
+                        100.0));
+            }
+
             return true;
         }
         catch
         {
-            // Remove an incomplete temporary download.
+            // --------------------------------------------
+            // REMOVE INCOMPLETE TEMPORARY DOWNLOAD
+            // --------------------------------------------
+
             if (File.Exists(tempPath))
             {
-                File.Delete(tempPath);
+                File.Delete(
+                    tempPath);
             }
 
             throw;
         }
+    }
+
+    // ----------------------------------------------------
+    // CALCULATE DOWNLOAD PERCENT
+    // ----------------------------------------------------
+
+    private static double? CalculatePercent(
+        long bytesDownloaded,
+        long? totalBytes)
+    {
+        if (!totalBytes.HasValue ||
+            totalBytes.Value <= 0)
+        {
+            return null;
+        }
+
+        double percent =
+            (double)bytesDownloaded /
+            totalBytes.Value *
+            100.0;
+
+        return Math.Clamp(
+            percent,
+            0.0,
+            100.0);
     }
 
     // ----------------------------------------------------
@@ -123,10 +265,12 @@ public class FileUpdater
         }
 
         string fullRoot =
-            Path.GetFullPath(cleopatraRoot);
+            Path.GetFullPath(
+                cleopatraRoot);
 
         string fullPath =
-            Path.GetFullPath(destinationPath);
+            Path.GetFullPath(
+                destinationPath);
 
         string rootWithSeparator =
             fullRoot.TrimEnd(
@@ -137,6 +281,7 @@ public class FileUpdater
         // Safety check:
         // Cleopatra may NEVER delete anything outside
         // its own Pivot overlay directory.
+
         if (!fullPath.StartsWith(
             rootWithSeparator,
             StringComparison.OrdinalIgnoreCase))
@@ -145,11 +290,14 @@ public class FileUpdater
                 "Refusing to delete a file outside the Cleopatra directory.");
         }
 
-        File.Delete(fullPath);
+        File.Delete(
+            fullPath);
 
         // Clean up empty folders left behind.
+
         RemoveEmptyParentDirectories(
-            Path.GetDirectoryName(fullPath),
+            Path.GetDirectoryName(
+                fullPath),
             fullRoot);
 
         return true;
@@ -166,9 +314,11 @@ public class FileUpdater
         while (!string.IsNullOrEmpty(directory))
         {
             string fullDirectory =
-                Path.GetFullPath(directory);
+                Path.GetFullPath(
+                    directory);
 
             // NEVER delete the Cleopatra root itself.
+
             if (fullDirectory.Equals(
                 cleopatraRoot,
                 StringComparison.OrdinalIgnoreCase))
@@ -187,14 +337,17 @@ public class FileUpdater
 
             // If the directory contains anything,
             // leave it alone and stop climbing.
+
             if (Directory
-                .EnumerateFileSystemEntries(fullDirectory)
+                .EnumerateFileSystemEntries(
+                    fullDirectory)
                 .Any())
             {
                 break;
             }
 
-            Directory.Delete(fullDirectory);
+            Directory.Delete(
+                fullDirectory);
 
             directory =
                 Path.GetDirectoryName(
@@ -213,13 +366,31 @@ public class FileUpdater
             SHA256.Create();
 
         using FileStream stream =
-            File.OpenRead(filePath);
+            File.OpenRead(
+                filePath);
 
         byte[] hash =
-            sha256.ComputeHash(stream);
+            sha256.ComputeHash(
+                stream);
 
         return Convert
             .ToHexString(hash)
             .ToLowerInvariant();
     }
 }
+
+// ----------------------------------------------------
+// FILE DOWNLOAD PROGRESS
+// ----------------------------------------------------
+//
+// This object is reported while an individual DAT
+// file is downloading.
+//
+// TotalBytes and Percent can be null because an HTTP
+// server is not required to provide Content-Length.
+// ----------------------------------------------------
+
+public sealed record FileDownloadProgress(
+    long BytesDownloaded,
+    long? TotalBytes,
+    double? Percent);
