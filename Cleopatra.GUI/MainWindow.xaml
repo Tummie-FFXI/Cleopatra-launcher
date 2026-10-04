@@ -12,6 +12,9 @@
 
         WindowStartupLocation="CenterScreen"
 
+        WindowStyle="None"
+        ResizeMode="NoResize"
+
         Background="#101010">
 
 
@@ -210,14 +213,22 @@
         <Border Grid.Row="0"
                 Background="#151515"
                 BorderBrush="#2B2925"
-                BorderThickness="0,0,0,1">
+                BorderThickness="0,0,0,1"
+                MouseLeftButtonDown="Header_MouseLeftButtonDown">
 
-            <Grid Margin="28,0">
+            <Grid>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
 
                 <!-- BRAND -->
 
-                <StackPanel VerticalAlignment="Center">
+                <StackPanel Grid.Column="0"
+                            Margin="28,0,0,0"
+                            VerticalAlignment="Center">
 
                     <TextBlock Text="CLEOPATRA XI"
                                Foreground="{StaticResource GoldBrush}"
@@ -231,6 +242,45 @@
 
                 </StackPanel>
 
+
+                <!-- WINDOW CONTROLS -->
+
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Right">
+
+                    <Button Width="42"
+                            Height="32"
+                            Content="—"
+                            Foreground="#77736B"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="12"
+                            Cursor="Hand"
+                            Click="MinimizeButton_Click"/>
+
+                    <Button Width="42"
+                            Height="32"
+                            Content="□"
+                            Foreground="#77736B"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="11"
+                            Cursor="Hand"
+                            Click="MaximizeButton_Click"/>
+
+                    <Button Width="42"
+                            Height="32"
+                            Content="×"
+                            Foreground="#77736B"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="14"
+                            Cursor="Hand"
+                            Click="CloseButton_Click"/>
+
+                </StackPanel>
 
             </Grid>
 
@@ -247,8 +297,13 @@
 
             <!-- HERO ARTWORK -->
 
-            <Image Source="Assets/launcher-hero.png"
-                   Stretch="UniformToFill"/>
+            <Image Source="/Cleopatra.GUI;component/Assets/launcher-hero.png"
+                    Stretch="UniformToFill"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+
+
+            </Image>
 
 
             <!-- DARK OVERLAY -->
