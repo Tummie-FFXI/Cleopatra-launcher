@@ -7,4 +7,8 @@ public class UpdateFile
     public string Url { get; set; } = "";
 
     public string Sha256 { get; set; } = "";
+
+    public string Group { get; set; } = "";
+
+    public string Note { get; set; } = "";
 }

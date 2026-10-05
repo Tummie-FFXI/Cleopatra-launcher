@@ -484,12 +484,48 @@ public partial class MainWindow : Window
             Visibility.Visible;
 
         // --------------------------------------------
-        // CURRENT FILE
+        // CURRENT FILE METADATA
         // --------------------------------------------
 
-        CurrentFileText.Text =
+        if (!string.IsNullOrWhiteSpace(
+            update.Group))
+        {
+            CurrentFileGroupText.Text =
+                update.Group.ToUpperInvariant();
+
+            CurrentFileGroupText.Visibility =
+                Visibility.Visible;
+        }
+        else
+        {
+            CurrentFileGroupText.Text =
+                "CLEOPATRA FILE";
+
+            CurrentFileGroupText.Visibility =
+                Visibility.Visible;
+        }
+
+        if (!string.IsNullOrWhiteSpace(
+            update.Note))
+        {
+            CurrentFileNoteText.Text =
+                update.Note;
+        }
+        else if (!string.IsNullOrWhiteSpace(
+            update.FilePath))
+        {
+            CurrentFileNoteText.Text =
+                update.FilePath;
+        }
+        else
+        {
+            CurrentFileNoteText.Text =
+                "Downloading...";
+        }
+
+        CurrentFilePathText.Text =
             update.FilePath ??
-            "Downloading...";
+            "Unknown file";
 
         // --------------------------------------------
         // PERCENT

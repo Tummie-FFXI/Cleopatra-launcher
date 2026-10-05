@@ -572,11 +572,19 @@
                         </Grid.ColumnDefinitions>
 
 
-                        <TextBlock x:Name="CurrentFileText"
-                                   Text="ROM/27/82.DAT"
-                                   Foreground="#AAA69D"
-                                   FontFamily="Consolas"
-                                   FontSize="11"/>
+                        <StackPanel>
+                            <TextBlock x:Name="CurrentFileGroupText"
+                                       Text="WEAPON SKILLS"
+                                       Foreground="{StaticResource MutedGoldBrush}"
+                                       FontSize="10"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,2"/>
+
+                            <TextBlock x:Name="CurrentFileNoteText"
+                                       Text="Hume Dancer weapon skill effects"
+                                       Foreground="#AAA69D"
+                                       FontSize="11"/>
+                        </StackPanel>
 
 
                         <TextBlock x:Name="UpdatePercentText"
@@ -627,6 +635,14 @@
                         <Border Height="1"
                                 Background="#2B2925"
                                 Margin="0,0,0,9"/>
+
+
+                        <TextBlock x:Name="CurrentFilePathText"
+                                   Text="ROM/27/82.DAT"
+                                   Foreground="#8F8B83"
+                                   FontFamily="Consolas"
+                                   FontSize="10"
+                                   Margin="0,0,0,8"/>
 
 
                         <TextBlock Text="✓  ROM/0/1.DAT"

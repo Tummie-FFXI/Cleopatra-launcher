@@ -330,6 +330,10 @@ public class LauncherService
                     Stage: "CheckingFile",
                     FilePath:
                         updateFile.Path,
+                    Group:
+                        updateFile.Group,
+                    Note:
+                        updateFile.Note,
                     CurrentFile:
                         currentFileNumber,
                     TotalFiles:
@@ -362,6 +366,10 @@ public class LauncherService
                                         "Downloading",
                                     FilePath:
                                         updateFile.Path,
+                                    Group:
+                                        updateFile.Group,
+                                    Note:
+                                        updateFile.Note,
                                     CurrentFile:
                                         currentFileNumber,
                                     TotalFiles:
@@ -391,6 +399,10 @@ public class LauncherService
                             "FileComplete",
                         FilePath:
                             updateFile.Path,
+                        Group:
+                            updateFile.Group,
+                        Note:
+                            updateFile.Note,
                         CurrentFile:
                             currentFileNumber,
                         TotalFiles:
@@ -414,6 +426,10 @@ public class LauncherService
                             "FileError",
                         FilePath:
                             updateFile.Path,
+                        Group:
+                            updateFile.Group,
+                        Note:
+                            updateFile.Note,
                         CurrentFile:
                             currentFileNumber,
                         TotalFiles:
@@ -566,6 +582,8 @@ public class LauncherService
 public sealed record LauncherUpdateProgress(
     string Stage,
     string? FilePath = null,
+    string? Group = null,
+    string? Note = null,
     int CurrentFile = 0,
     int TotalFiles = 0,
     double? FilePercent = null,
