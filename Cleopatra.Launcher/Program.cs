@@ -5,7 +5,7 @@ Console.WriteLine("Cleopatra Launcher");
 Console.WriteLine("------------------");
 
 const string manifestUrl =
-    "https://raw.githubusercontent.com/Tummie-FFXI/Cleopatra-launcher/main/manifest.json";
+    "https://raw.githubusercontent.com/Tummie-FFXI/Cleopatra-updates/main/manifest.json";
 
 // ----------------------------------------------------
 // SERVICES

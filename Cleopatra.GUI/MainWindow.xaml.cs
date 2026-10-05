@@ -15,7 +15,7 @@ public partial class MainWindow : Window
     // ----------------------------------------------------
 
     private const string ManifestUrl =
-        "https://raw.githubusercontent.com/Tummie-FFXI/Cleopatra-launcher/main/manifest.json";
+        "https://raw.githubusercontent.com/Tummie-FFXI/Cleopatra-updates/main/manifest.json";
 
     // ----------------------------------------------------
     // SERVICES
