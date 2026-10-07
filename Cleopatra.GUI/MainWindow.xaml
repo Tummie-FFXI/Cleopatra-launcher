@@ -297,13 +297,11 @@
 
             <!-- HERO ARTWORK -->
 
-            <Image Source="/Cleopatra.GUI;component/Assets/launcher-hero.png"
-                    Stretch="UniformToFill"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
+            <Image Source="Assets/launcher-hero.png"
+                Stretch="UniformToFill"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"/>
 
-
-            </Image>
 
 
             <!-- DARK OVERLAY -->
