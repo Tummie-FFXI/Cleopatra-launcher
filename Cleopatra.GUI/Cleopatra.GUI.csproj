@@ -7,6 +7,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+
+    <AssemblyName>Cleopatra Launcher</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
