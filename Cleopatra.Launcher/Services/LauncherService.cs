@@ -6,7 +6,7 @@ public class LauncherService
 {
     private readonly LoaderDetectionService _loaderDetectionService;
     private readonly SettingsService _settingsService;
-    private readonly PivotService _pivotService;
+    private readonly CleopatraPathService _cleopatraPathService;
     private readonly ManifestService _manifestService;
     private readonly FileUpdater _fileUpdater;
     private readonly InstallationStateService _installationStateService;
@@ -16,7 +16,7 @@ public class LauncherService
     public LauncherService(
         LoaderDetectionService loaderDetectionService,
         SettingsService settingsService,
-        PivotService pivotService,
+        CleopatraPathService cleopatraPathService,
         ManifestService manifestService,
         FileUpdater fileUpdater,
         InstallationStateService installationStateService,
@@ -29,8 +29,8 @@ public class LauncherService
         _settingsService =
             settingsService;
 
-        _pivotService =
-            pivotService;
+        _cleopatraPathService =
+            cleopatraPathService;
 
         _manifestService =
             manifestService;
@@ -123,53 +123,13 @@ public class LauncherService
     }
 
     // ----------------------------------------------------
-    // PREPARE PIVOT
-    // ----------------------------------------------------
-
-    public bool PreparePivot(
-        LoaderInstallation loader)
-    {
-        bool detected =
-            _pivotService.DetectFromLoaderRoot(
-                loader.RootPath);
-
-        if (!detected)
-        {
-            return false;
-        }
-
-        var configuration =
-            _pivotService.ReadConfiguration();
-
-        if (!configuration.CleopatraEnabled)
-        {
-            _pivotService
-                .EnsureCleopatraOverlay();
-        }
-
-        _pivotService
-            .EnsureCleopatraDirectory();
-
-        return true;
-    }
-
-    // ----------------------------------------------------
     // CLEOPATRA ROOT
     // ----------------------------------------------------
 
     public string GetCleopatraRoot()
     {
-        return _pivotService
+        return _cleopatraPathService
             .GetCleopatraRoot();
-    }
-
-    // ----------------------------------------------------
-    // PIVOT INSTALLATION
-    // ----------------------------------------------------
-
-    public PivotInstallation? GetPivotInstallation()
-    {
-        return _pivotService.Installation;
     }
 
     // ----------------------------------------------------
@@ -237,6 +197,7 @@ public class LauncherService
         // ------------------------------------------------
 
         Console.WriteLine();
+
         Console.WriteLine(
             "Checking for updates...");
 
@@ -262,6 +223,7 @@ public class LauncherService
         }
 
         Console.WriteLine();
+
         Console.WriteLine(
             "Manifest downloaded successfully.");
 
@@ -310,7 +272,7 @@ public class LauncherService
             currentFileNumber++;
 
             string destinationPath =
-                _pivotService
+                _cleopatraPathService
                     .GetDestinationPath(
                         updateFile.Path);
 
@@ -499,7 +461,7 @@ public class LauncherService
                     .ThrowIfCancellationRequested();
 
                 string destinationPath =
-                    _pivotService
+                    _cleopatraPathService
                         .GetDestinationPath(
                             obsoleteFile);
 
@@ -536,6 +498,7 @@ public class LauncherService
             $"Installation state saved: {manifest.Version}");
 
         Console.WriteLine();
+
         Console.WriteLine(
             "Update check complete.");
 
@@ -555,6 +518,7 @@ public class LauncherService
         return true;
     }
 }
+
 
 // ----------------------------------------------------
 // LAUNCHER UPDATE PROGRESS

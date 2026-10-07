@@ -25,8 +25,8 @@ ManifestService manifestService =
 FileUpdater fileUpdater =
     new FileUpdater(client);
 
-PivotService pivotService =
-    new PivotService();
+CleopatraPathService cleopatraPathService =
+    new CleopatraPathService();
 
 InstallationStateService installationStateService =
     new InstallationStateService();
@@ -41,7 +41,7 @@ LauncherService launcherService =
     new LauncherService(
         loaderDetectionService,
         settingsService,
-        pivotService,
+        cleopatraPathService,
         manifestService,
         fileUpdater,
         installationStateService,

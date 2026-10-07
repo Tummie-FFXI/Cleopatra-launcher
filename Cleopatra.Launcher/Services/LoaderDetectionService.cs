@@ -175,8 +175,6 @@ public class LoaderDetectionService
     // IMPORTANT:
     // This only identifies the loader.
     // It does NOT require Pivot to be installed.
-    //
-    // PivotService is responsible for Pivot detection.
 
     private static LoaderInstallation? DetectLoader(
         string rootPath)
