@@ -559,13 +559,12 @@ public class PivotService
 
     public string GetCleopatraRoot()
     {
-        if (_installation == null)
-        {
-            throw new InvalidOperationException(
-                "No Pivot installation has been detected.");
-        }
-
-        return _installation.CleopatraRoot;
+        return Path.GetFullPath(
+            Path.Combine(
+                AppContext.BaseDirectory,
+                "data",
+                "overlays",
+                "Cleopatra"));
     }
 
     public void EnsureCleopatraDirectory()

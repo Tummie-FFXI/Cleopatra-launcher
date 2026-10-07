@@ -148,45 +148,10 @@ try
     }
 
     // ------------------------------------------------
-    // PREPARE PIVOT
+    // CLEOPATRA DAT DIRECTORY
     // ------------------------------------------------
 
     Console.WriteLine();
-    Console.WriteLine(
-        "Checking Pivot installation...");
-
-    bool pivotReady =
-        launcherService.PreparePivot(
-            selectedLoader);
-
-    if (!pivotReady)
-    {
-        Console.WriteLine();
-        Console.WriteLine(
-            $"Pivot was not found for {selectedLoader.DisplayName}.");
-
-        Console.WriteLine(
-            "Pivot is required to use Cleopatra custom DAT files.");
-
-        Console.WriteLine(
-            "Please install Pivot for your loader and restart Cleopatra.");
-
-        return;
-    }
-
-    PivotInstallation? installation =
-        launcherService.GetPivotInstallation();
-
-    if (installation == null)
-    {
-        Console.WriteLine(
-            "Unable to read Pivot installation information.");
-
-        return;
-    }
-
-    Console.WriteLine(
-        $"Pivot location: {installation.PivotRoot}");
 
     string cleopatraRoot =
         launcherService.GetCleopatraRoot();
@@ -216,8 +181,7 @@ try
         "Locating XiLoader...");
 
     string? xiLoaderPath =
-        launcherService.FindXiLoader(
-            selectedLoader);
+        launcherService.FindXiLoader();
 
     if (string.IsNullOrWhiteSpace(xiLoaderPath))
     {
@@ -250,7 +214,8 @@ try
     // ------------------------------------------------
     // DEVELOPMENT TEST ONLY:
     // Verify the command Cleopatra will use without
-    // actually attempting to launch the Windows loader on macOS.
+    // actually attempting to launch the Windows loader
+    // on macOS.
 
     Console.WriteLine();
     Console.WriteLine(

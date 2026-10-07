@@ -173,15 +173,13 @@ public class LauncherService
     }
 
     // ----------------------------------------------------
-    // FIND XILOADER
+    // FIND CLEOPATRA XILOADER
     // ----------------------------------------------------
 
-    public string? FindXiLoader(
-        LoaderInstallation loader)
+    public string? FindXiLoader()
     {
         return _xiLoaderDetectionService
-            .FindXiLoader(
-                loader);
+            .FindXiLoader();
     }
 
     // ----------------------------------------------------
