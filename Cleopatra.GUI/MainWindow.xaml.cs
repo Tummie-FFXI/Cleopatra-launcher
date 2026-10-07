@@ -68,8 +68,8 @@ public partial class MainWindow : Window
             new FileUpdater(
                 _httpClient);
 
-        PivotService pivotService =
-            new PivotService();
+        CleopatraPathService cleopatraPathService =
+            new CleopatraPathService();
 
         InstallationStateService installationStateService =
             new InstallationStateService();
@@ -84,7 +84,7 @@ public partial class MainWindow : Window
             new LauncherService(
                 loaderDetectionService,
                 settingsService,
-                pivotService,
+                cleopatraPathService,
                 manifestService,
                 fileUpdater,
                 installationStateService,
@@ -189,36 +189,19 @@ public partial class MainWindow : Window
             }
 
             // --------------------------------------------
-            // CHECK PIVOT
+            // LOCATE CLEOPATRA XILOADER
             // --------------------------------------------
 
             ShowCheckingState(
-                $"Checking Pivot for {_selectedLoader.DisplayName}...");
-
-            bool pivotReady =
-                _launcherService.PreparePivot(
-                    _selectedLoader);
-
-            if (!pivotReady)
-            {
-                ShowErrorState(
-                    $"Pivot was not found for {_selectedLoader.DisplayName}.");
-
-                return;
-            }
-
-            // --------------------------------------------
-            // LOCATE XILOADER
-            // --------------------------------------------
+                "Checking Cleopatra XiLoader...");
 
             string? xiLoaderPath =
-                _launcherService.FindXiLoader(
-                    _selectedLoader);
+                _launcherService.FindXiLoader();
 
             if (string.IsNullOrWhiteSpace(xiLoaderPath))
             {
                 ShowErrorState(
-                    "XiLoader could not be found. Check your Windower configuration.");
+                    "Cleopatra XiLoader could not be found.");
 
                 return;
             }
